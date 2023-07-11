@@ -266,7 +266,7 @@ class SearchController extends Controller
             
         return view('search.par_search_result',compact('par_details')); 
     }
-
     
+    // nnew update search controller
 
 }
