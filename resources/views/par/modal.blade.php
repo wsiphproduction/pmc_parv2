@@ -248,3 +248,5 @@
         </div>
     </div>
 </div>
+
+<!-- new update for modal blade -->
