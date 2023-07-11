@@ -1,0 +1,577 @@
+<?php
+
+namespace App\Http\Controllers\Reports;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+use DB;
+
+use App\parDetails;
+use App\Items;
+
+
+class AjaxController extends Controller
+{
+
+    public function ajax_par_summary_report(Request $req)
+    {
+        
+        if($req->ajax()){
+            if($req->rtype == 1){
+                $personal = $req->emp;
+                
+                if($req->option_personal == 1){
+                    $data = parDetails::where('is_dept','=',0)->whereBetween('document_date',[$req->dt_from,$req->dt_to])->get();
+                    $btnExport = "<a href='/export/personal/all' class='btn btn-sm pd-x-15 btn-primary btn-uppercase mg-l-5 text-white btnCSV'>Export to CSV</a>";
+                } else {
+                    if(isset($req->doc_date_from)){
+                        $data = parDetails::where('accountable','=',$personal)->whereBetween('document_date',[$req->doc_date_from,$req->doc_date_to])->get();
+                        $btnExport = "<a href='/export/personnel/".$personal."' class='btn btn-sm pd-x-15 btn-primary btn-uppercase mg-l-5 text-white btnCSV'>Export to CSV</a>";
+                    } else {
+                        $data = parDetails::where('accountable','=',$personal)->get();
+                        $btnExport = "<a href='/export/personnel/".$personal."' class='btn btn-sm pd-x-15 btn-primary btn-uppercase mg-l-5 text-white btnCSV'>Export to CSV</a>";
+                    } 
+                }
+                
+                $rows = count($data);
+
+                $output =  "<div class='df-example demo-table mg-t-20'>
+                            <div class='d-sm-flex align-items-center justify-content-end p-xs h4'>
+                                <div class='d-none d-md-block'>
+                                    ".$btnExport."
+                                </div>
+                            </div>
+                            <div class='table-responsive'>
+                                <table class='table table-secondary table-hover table-striped mg-b-0'>
+                                    <thead>
+                                        <tr>
+                                            <th class='wd-5p'> Par #</th>
+                                            <th class='wd-20p'> Accountable </th>
+                                            <th class='wd-10p'> Doc Date </th>
+                                            <th class='wd-10p'> Serial # </th>
+                                            <th class='wd-35p'> Description </th>
+                                            <th class='wd-5p'> Status </th>
+                                            <th class='wd-5p'> Qty </th>
+                                            <th class='wd-5p'> Cost </th>
+                                            <th class='wd-5p'> Encoder </th>
+                                        </tr>
+                                    </thead>";
+
+                if($rows > 0){
+                    $total_cost = 0;
+                    foreach($data as $key => $d){
+                        if($d->qty > 0){
+                            $total_cost += $d->qty*$d->cost;
+                        } else {
+                            $total_cost += $d->cost;
+                        }
+                        $qty = $d->qty == '0.00' ? '1' : $d->qty;
+
+                        $output .= '<tbody>'.
+                                        '<tr class="tx-13">'.
+                                            '<td>'.$d->refcode.'</td>'.
+                                            '<td>'.$d->accountable.'</td>'.
+                                            '<td>'.$d->document_date.'</td>'.
+                                            '<td>'.$d->serial_no.'</td>'.
+                                            '<td>'.$d->description.'</td>'.
+                                            '<td>'.strtoupper($d->doc_status).'</td>'.
+                                            '<td class="text-right">'.$qty.'</td>'.
+                                            '<td class="text-right">'.$d->cost.'</td>'.
+                                            '<td>'.$d->added_by.'</td>'.
+                                        '</tr>';
+                    }
+
+                            $output .= '<tr>'.
+                                            '<td colspan="7"><b>Grand Total</b></td>'.
+                                            '<td class="text-right"><b>'.number_format($total_cost,2).'</b></td>'.
+                                            '<td colspan="1"></td>'.
+                                        '</tr>'.
+                                    '</tbody>'.
+                                '</table>'.
+                            '</div>'.
+                        '</div>';
+
+                    return Response($output);
+                } else {
+                    $output .= '<tr><td colspan="10"><center><span class="badge badge-info">No accountable items for the selected employee...</span></center></td></tr>';
+                        return Response($output);
+                }
+            }
+
+        //     if($req->rtype == 2){
+
+        //         if($req->option_common == 1){
+        //             $data = parDetails::where('is_dept',1)->whereBetween('document_date',[$req->dt_from,$req->dt_to])->get();
+        //             $btnExport = "<a href='/export/common/all' class='btn btn-sm pd-x-15 btn-primary btn-uppercase mg-l-5 text-white btnCSV'>Export to CSV</a>";
+        //         } 
+        //         else {
+        //             if(isset($req->doc_date_from_dept)){
+        //                 $data = parDetails::where('is_dept',1)->whereBetween('document_date',[$req->doc_date_from_dept,$req->doc_date_to_dept])->get();
+        //                 $btnExport = "<a href='/export/common/".$req->dept."' class='btn btn-sm pd-x-15 btn-primary btn-uppercase mg-l-5 text-white btnCSV'>Export to CSV</a>";
+        //             } else {
+        //                 $data = parDetails::where('is_dept',1)->get();
+        //                 $btnExport = "<a href='/export/common/".$req->dept."' class='btn btn-sm pd-x-15 btn-primary btn-uppercase mg-l-5 text-white btnCSV'>Export to CSV</a>";
+        //             } 
+        //         }
+
+        //         $rows = count($data);
+
+        //         $output =  "<div class='df-example demo-table mg-t-20'>
+        //                     <div class='d-sm-flex align-items-center justify-content-end p-xs h4'>
+        //                         <div class='d-none d-md-block'>
+        //                             <a href='/export/personnel/".$req->dept."' class='btn btn-sm pd-x-15 btn-primary btn-uppercase mg-l-5 text-white btnCSV'>Export to CSV</a>
+        //                         </div>
+        //                     </div>
+        //                     <div class='table-responsive'>
+        //                         <table class='table table-secondary table-hover table-striped mg-b-0'>
+        //                             <thead>
+        //                                 <tr>
+        //                                     <th class='wd-5p'> Par #</th>
+        //                                     <th class='wd-20p'> Accountable </th>
+        //                                     <th class='wd-10p'> Doc Date </th>
+        //                                     <th class='wd-10p'> Asset Code </th>
+        //                                     <th class='wd-30p'> Description </th>
+        //                                     <th class='wd-5p'> Status </th>
+        //                                     <th class='wd-5p'> Qty </th>
+        //                                     <th class='wd-5p'> Cost </th>
+        //                                     <th class='wd-5p'> Total </th>
+        //                                     <th class='wd-5p'> Encoder </th>
+        //                                 </tr>
+        //                             </thead>";
+
+        //         if($rows > 0){
+        //             $total_cost = 0;
+        //             foreach($data as $key => $d){
+        //                 $total_cost += $d->t_cost;
+        //                 $output .= '<tbody>'.
+        //                                 '<tr class="tx-13">'.
+        //                                     '<td>'.$d->refcode.'</td>'.
+        //                                     '<td>'.$d->accountable.'</td>'.
+        //                                     '<td>'.$d->document_date.'</td>'.
+        //                                     '<td>'.$d->asset_code.'</td>'.
+        //                                     '<td>'.$d->description.'</td>'.
+        //                                     '<td>'.strtoupper($d->doc_status).'</td>'.
+        //                                     '<td class="text-right">'.$d->qty.'</td>'.
+        //                                     '<td class="text-right">'.$d->cost.'</td>'.
+        //                                     '<td class="text-right">'.number_format($d->t_cost,2).'</td>'.
+        //                                     '<td>'.$d->added_by.'</td>'.
+        //                                 '</tr>';
+        //             }
+
+        //                     $output .= '<tr>'.
+        //                                     '<td colspan="8"><b>Grand Total</b></td>'.
+        //                                     '<td class="text-right"><b>'.number_format($total_cost,2).'</b></td>'.
+        //                                     '<td colspan="1"></td>'.
+        //                                 '</tr>'.
+        //                             '</tbody>'.
+        //                         '</table>'.
+        //                     '</div>'.
+        //                 '</div>';
+
+        //             return Response($output);
+        //         } else {
+        //             $output .= '<tr><td colspan="10"><center><span class="badge badge-info">No accountable items for the selected employee...</span></center></td></tr>';
+        //             return Response($output);
+        //         }
+        //     }
+
+        //     if($req->rtype == 3){
+
+        //         if($req->status == 'transferred'){
+        //             $data = parDetails::where('ptype','=','transfer')->get();
+        //         } else {
+        //             $data = parDetails::where('doc_status','=',$req->status)->get();
+        //         }
+                
+        //         $rows = count($data);
+
+        //         $output =  "<div class='df-example demo-table mg-t-20'>
+        //                     <div class='d-sm-flex align-items-center justify-content-end p-xs h4'>
+        //                         <div class='d-none d-md-block'>
+        //                             <a href='/export/personnel/".$req->status."' class='btn btn-sm pd-x-15 btn-primary btn-uppercase mg-l-5 text-white btnCSV'>Export to CSV</a>
+        //                         </div>
+        //                     </div>
+        //                     <div class='table-responsive'>
+        //                         <table class='table table-secondary table-hover table-striped mg-b-0'>
+        //                             <thead>
+        //                                 <tr>
+        //                                     <th class='wd-5p'> Par #</th>
+        //                                     <th class='wd-20p'> Accountable </th>
+        //                                     <th class='wd-10p'> Doc Date </th>
+        //                                     <th class='wd-10p'> Serial # </th>
+        //                                     <th class='wd-35p'> Description </th>
+        //                                     <th class='wd-5p'> Status </th>
+        //                                     <th class='wd-5p'> Encoder </th>
+        //                                     <th class='wd-5p'> Qty </th>
+        //                                     <th class='wd-5p'> Cost </th>
+        //                                 </tr>
+        //                             </thead>";
+
+        //         if($rows > 0){
+        //             $total_cost = 0;
+        //             foreach($data as $key => $d){
+        //                 if($d->qty > 0){
+        //                     $total_cost += $d->qty*$d->cost;
+        //                 } else {
+        //                     $total_cost += $d->cost;
+        //                 }
+        //                 $qty = $d->qty == '0.00' ? '1' : $d->qty;
+                        
+        //                 $output .= '<tbody>'.
+        //                                 '<tr class="tx-13">'.
+        //                                     '<td>'.$d->refcode.'</td>'.
+        //                                     '<td>'.$d->accountable.'</td>'.
+        //                                     '<td>'.$d->document_date.'</td>'.
+        //                                     '<td>'.$d->serial_no.'</td>'.
+        //                                     '<td>'.$d->description.'</td>'.
+        //                                     '<td>'.strtoupper($d->doc_status).'</td>'.
+        //                                     '<td>'.$d->added_by.'</td>'.
+        //                                     '<td class="text-right">'.$qty.'</td>'.
+        //                                     '<td class="text-right">'.$d->cost.'</td>'.
+        //                                 '</tr>';
+        //             }
+
+        //                     $output .= '<tr>'.
+        //                                     '<td colspan="8"><b>Grand Total</b></td>'.
+        //                                     '<td class="text-right"><b>'.number_format($total_cost,2).'</b></td>'.
+        //                                 '</tr>'.
+        //                             '</tbody>'.
+        //                         '</table>'.
+        //                     '</div>'.
+        //                 '</div>';
+
+        //             return Response($output);
+        //         } else {
+        //             $output .= '<tr><td colspan="10"><center><span class="badge badge-info">No accountable items for the selected employee...</span></center></td></tr>';
+        //             return Response($output);
+        //         }
+        //     }
+
+            // if($req->rtype == 5){
+
+            //     $data = parDetails::get();
+            //     $rows = count($data);
+
+            //     $output =  "<div class='df-example demo-table mg-t-20'>
+            //                 <div class='d-sm-flex align-items-center justify-content-end p-xs h4'>
+            //                     <div class='d-none d-md-block'>
+            //                         <a href='/export/personnel/".$req->rtype."' class='btn btn-sm pd-x-15 btn-primary btn-uppercase mg-l-5 text-white'>Export to CSV</a>
+            //                     </div>
+            //                 </div>
+            //                 <div class='table-responsive'>
+            //                     <table class='table table-secondary table-hover table-striped mg-b-0'>
+            //                         <thead>
+            //                             <tr>
+            //                                 <th class='wd-5p'> Par #</th>
+            //                                 <th class='wd-20p'> Accountable </th>
+            //                                 <th class='wd-10p'> Doc Date </th>
+            //                                 <th class='wd-10p'> Asset Code </th>
+            //                                 <th class='wd-30p'> Description </th>
+            //                                 <th class='wd-5p'> Status </th>
+            //                                 <th class='wd-5p'> Qty </th>
+            //                                 <th class='wd-5p'> Cost </th>
+            //                                 <th class='wd-5p'> Total </th>
+            //                                 <th class='wd-5p'> Encoder </th>
+            //                             </tr>
+            //                         </thead>";
+
+            //     if($rows > 0){
+            //         $total_cost = 0;
+            //         foreach($data as $key => $d){
+            //             $total_cost += $d->t_cost;
+            //             $output .= '<tbody>'.
+            //                             '<tr class="tx-13">'.
+            //                                 '<td>'.$d->refcode.'</td>'.
+            //                                 '<td>'.$d->accountable.'</td>'.
+            //                                 '<td>'.$d->document_date.'</td>'.
+            //                                 '<td>'.$d->asset_code.'</td>'.
+            //                                 '<td>'.$d->description.'</td>'.
+            //                                 '<td>'.strtoupper($d->doc_status).'</td>'.
+            //                                 '<td class="text-right">'.$d->qty.'</td>'.
+            //                                 '<td class="text-right">'.$d->cost.'</td>'.
+            //                                 '<td class="text-right">'.number_format($d->t_cost,2).'</td>'.
+            //                                 '<td>'.$d->added_by.'</td>'.
+            //                             '</tr>';
+            //         }
+
+            //                 $output .= '<tr>'.
+            //                                 '<td colspan="8"><b>Grand Total</b></td>'.
+            //                                 '<td class="text-right"><b>'.number_format($total_cost,2).'</b></td>'.
+            //                                 '<td colspan="1"></td>'.
+            //                             '</tr>'.
+            //                         '</tbody>'.
+            //                     '</table>'.
+            //                 '</div>'.
+            //             '</div>';
+
+            //         return Response($output);
+            //     } else {
+            //         $output .= '<tr><td colspan="10"><center><span class="badge badge-info">No accountable items for the selected employee...</span></center></td></tr>';
+            //         return Response($output);
+            //     }
+            // }
+        }
+    }
+
+
+	// public function ajax_par_personnel(Request $req){
+ //        $personnel = explode(' - ',$req->emp);
+
+ //        if($req->ajax()){
+
+ //            $data = parDetails::where('accountable','=',$personnel[1])->get();
+ //            $rows = count($data);
+
+            
+ //            $output =  "<div class='df-example demo-table mg-t-20'>
+ //                            <div class='d-sm-flex align-items-center justify-content-between p-xs h4'>".$req->emp."
+ //                                <div class='d-none d-md-block'>
+ //                                    <a href='/export/personnel/".$personnel[1]."' class='btn btn-sm pd-x-15 btn-primary btn-uppercase mg-l-5 text-white'>Export to CSV</a>
+ //                                </div>
+ //                            </div>
+ //                            <div class='table-responsive'>
+ //                                <table class='table table-secondary table-hover table-striped mg-b-0'>
+ //                                    <thead>
+ //                                        <tr>
+ //                                            <th> Par #</th>
+ //                                            <th> Document Date </th>
+ //                                            <th> Asset Code </th>
+ //                                            <th class='wd-500'> Description </th>
+ //                                            <th> Expense Type </th>
+ //                                            <th> Cost </th>
+ //                                            <th> Added By </th>
+ //                                        </tr>
+ //                                    </thead>";
+
+ //                if($rows > 0){
+ //                	$total_cost = 0;
+ //                    foreach($data as $key => $d){
+ //                        $total_cost += $d->cost;
+ //                        $output .= '<tbody>'.
+ //                                        '<tr>'.
+ //                                            '<td>'.$d->refcode.'</td>'.
+ //                                            '<td>'.$d->document_date.'</td>'.
+ //                                            '<td>'.$d->stock_code.'</td>'.
+ //                                            '<td>'.$d->description.'</td>'.
+ //                                            '<td>'.$d->expense_type.'</td>'.
+ //                                            '<td class="text-right">'.number_format($d->cost,2).'</td>'.
+ //                                            '<td>'.$d->added_by.'</td>'.
+ //                                        '</tr>';
+ //                    }
+
+ //                            $output .= '<tr>'.
+ //                                            '<td colspan="5"><b>Grand Total</b></td>'.
+ //                                            '<td class="text-right"><b>'.number_format($total_cost,2).'</b></td>'.
+ //                                            '<td colspan="1"></td>'.
+ //                                        '</tr>'.
+ //                                    '</tbody>'.
+ //                                '</table>'.
+ //                            '</div>'.
+ //                        '</div>';
+
+ //                return Response($output);
+ //            }
+ //            else {
+ //                $output .= '<tr><td colspan="10"><center><span class="badge badge-info">No accountable items for the selected employee...</span></center></td></tr>';
+ //                return Response($output);
+ //            }
+ //        }
+ //    }
+
+    // public function ajax_par_department(Request $req){
+
+    //     if($req->ajax()){
+
+    //         $data = parDetails::where('accountable','=',$req->dept)->get();
+    //         $rows = count($data);
+    //         $dept = str_replace('/',':',$req->dept);
+            
+    //         $output =  "<div class='df-example demo-table mg-t-20'>
+    //                         <div class='d-sm-flex align-items-center justify-content-between p-xs h4'>Accountable : ".$req->dept."
+    //                             <div class='d-none d-md-block'>
+    //                                 <a href='/export/department/".$dept."' class='btn btn-sm pd-x-15 btn-secondary btn-uppercase mg-l-5 text-white'>Export to CSV</a>
+    //                             </div>
+    //                         </div>
+    //                         <div class='table-responsive'>
+    //                             <table class='table table-secondary table-hover table-striped mg-b-0'>
+    //                                 <thead>
+    //                                     <tr>
+    //                                         <th> Par #</th>
+    //                                         <th> Document Date </th>
+    //                                         <th> Tracking # </th>
+    //                                         <th> Description </th>
+    //                                         <th> Details </th>
+    //                                         <th> Qty </th>
+    //                                         <th> Cost </th>
+    //                                         <th> Serial # </th>
+    //                                         <th> Status </th>
+    //                                         <th> Added By </th>
+    //                                     </tr>
+    //                                 </thead>";
+
+    //             if($rows > 0){
+    //                 $total_cost = 0;
+    //                 foreach($data as $key => $d){
+    //                     $total_cost += $d->price*$d->qty;
+    //                     $output .= '<tbody>'.
+    //                                     '<tr>'.
+    //                                         '<td>'.$d->refcode.'</td>'.
+    //                                         '<td>'.$d->document_date.'</td>'.
+    //                                         '<td>'.$d->tracking.'</td>'.
+    //                                         '<td>'.$d->itemName.'</td>'.
+    //                                         '<td>'.str_limit($d->details, 50, '...').'</td>'.
+    //                                         '<td class="text-right">'.$d->qty.'</td>'.
+    //                                         '<td class="text-right">'.$d->price.'</td>'.
+    //                                         '<td>'.$d->serialNo.'</td>'.
+    //                                         '<td>'.$d->status.'</td>'.
+    //                                         '<td>'.$d->added_by.'</td>'.
+    //                                     '</tr>';
+    //                 }
+
+    //                         $output .= '<tr>'.
+    //                                         '<td colspan="6"><b>Grand Total</b></td>'.
+    //                                         '<td class="text-right"><b>'.number_format($total_cost,2).'</b></td>'.
+    //                                         '<td colspan="3"></td>'.
+    //                                     '</tr>'.
+    //                                 '</tbody>'.
+    //                             '</table>'.
+    //                         '</div>'.
+    //                     '</div>';
+
+    //             return Response($output);
+    //         }
+    //         else {
+    //             $output .= '<tr><td colspan="10"><center><span class="badge badge-info">No accountable items for the selected employee...</span></center></td></tr>';
+    //             return Response($output);
+    //         }
+    //     }
+    // }
+
+    // public function ajax_items_without_par(Request $req){
+
+    //     if($req->ajax()){
+
+
+    //         $data = Items::whereNotIn('id', function($query){ $query->select('item')->from('accountabilityDetails')->where('status','=','OPEN'); })
+    //             ->where('category','=',$req->category)
+    //             ->get();
+    //         $rows = count($data);
+    //         if($req->category == 1){
+    //             $category =  'PPE';
+    //         }
+    //         if($req->category == 2){
+    //             $category =  'TOOLS';
+    //         }
+    //         if($req->category == 3){
+    //             $category =  'CAPEX';
+    //         }
+    //         if($req->category == 4){
+    //             $category =  'Others';
+    //         }
+
+    //         $output = "<div class='df-example demo-table mg-t-20'>
+    //                         <div class='d-sm-flex align-items-center justify-content-between p-xs h4'>Category : ".$category."
+    //                             <div class='d-none d-md-block'>
+    //                                 <a href='/export/items_without_par/".$req->category."' class='btn btn-sm pd-x-15 btn-secondary btn-uppercase mg-l-5 text-white'>Export to CSV</a>
+    //                             </div>
+    //                         </div>
+    //                         <div class='table-responsive'>
+    //                             <table class='table table-secondary table-hover table-striped mg-b-0'>
+    //                                 <thead>
+    //                                     <tr>
+    //                                         <th> Tracking #</th>
+    //                                         <th> Description </th>
+    //                                         <th> Details </th>
+    //                                         <th> Qty </th>
+    //                                         <th> Cost </th>
+    //                                         <th> Serial # </th>
+    //                                         <th> Added By </th>
+    //                                     </tr>
+    //                                 </thead>
+    //                                 <tbody>";
+
+    //                 if($rows > 0){
+    //                     foreach($data as $key => $d){
+    //                         $output .= '<tr>'.
+    //                                         '<td>'.$d->tracking.'</td>'.
+    //                                         '<td>'.$d->name.'</td>'.
+    //                                         '<td>'.str_limit($d->details, 50, '...').'</td>'.
+    //                                         '<td class="text-right">'.$d->qty.'</td>'.
+    //                                         '<td class="text-right">'.$d->price.'</td>'.
+    //                                         '<td>'.$d->serialNo.'</td>'.
+    //                                         '<td>'.$d->addedBy.'</td>'.
+    //                                     '</tr>';
+    //                     }
+
+    //                     $output .= '</tbody>'.
+    //                             '</table>'.
+    //                         '</div>'.
+    //                     '</div>';
+
+    //             return Response($output);
+    //         }
+    //         else {
+    //             $output .= '<tr><td colspan="7"><center><span class="badge badge-info">No items for the selected category...</span> </center></td></tr>';
+    //             return Response($output);
+    //         }
+    //     }
+    // }
+
+    // public function ajax_par_status(Request $req){
+
+    //     if($req->ajax()){
+
+    //         $data = parDetails::where('doc_status','=',$req->status)->get();
+    //         $rows = count($data);
+
+    //         $output = "<div class='df-example demo-table mg-t-20'>
+    //                         <div class='d-sm-flex align-items-center justify-content-between p-xs h4 text-uppercase'>Status : ".$req->status."
+    //                             <div class='d-none d-md-block'>
+    //                                 <a href='/export/par/".$req->status."' class='btn btn-sm pd-x-15 btn-secondary btn-uppercase mg-l-5 text-white'>Export to CSV</a>
+    //                             </div>
+    //                         </div>
+    //                         <div class='table-responsive'>
+    //                             <table class='table table-secondary table-hover table-striped mg-b-0'>
+    //                                 <thead>
+    //                                     <tr>
+    //                                         <th> PAR #</th>
+    //                                         <th> Accountable </th>
+    //                                         <th> Document Date </th>
+    //                                         <th> Stock Code </th>
+    //                                         <th class='wd-350'> Description </th>
+    //                                         <th> Cost </th>
+    //                                         <th> Expense Type </th>
+    //                                         <th> Added By </th>
+    //                                     </tr>
+    //                                 </thead>
+    //                                 <tbody>";
+
+    //             if($rows > 0){
+    //                 foreach($data as $key => $d){
+    //                     $output .= ''.
+    //                                     '<tr>'.
+    //                                         '<td>'.$d->refcode.'</td>'.
+    //                                         '<td>'.$d->accountable.'</td>'.
+    //                                         '<td>'.$d->document_date.'</td>'.
+    //                                         '<td>'.$d->stock_code.'</td>'.
+    //                                         '<td>'.$d->description.'</td>'.
+    //                                         '<td>'.number_format($d->cost,2).'</td>'.
+    //                                         '<td>'.$d->expense_type.'</td>'.
+    //                                         '<td>'.$d->added_by.'</td>'.
+    //                                     '</tr>';
+    //                 }
+    //                     $output .= '</tbody>'.
+    //                             '</table>'.
+    //                         '</div>'.
+    //                     '</div>';
+
+    //             return Response($output);
+    //         }
+    //         else {
+    //             $output .= '<tr><td colspan="8"><center><span class="badge badge-info">No records found...</span> </center></td></tr>';
+    //             return Response($output);
+    //         }
+    //     }
+    // }
+}
