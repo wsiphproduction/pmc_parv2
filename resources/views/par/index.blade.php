@@ -20,7 +20,7 @@
     padding-left: 6.25rem;
     margin-top: -22px;
         }
-
+/* index */
     </style>
 @endsection
 
