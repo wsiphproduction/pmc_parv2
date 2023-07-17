@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Par;
 
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests;
@@ -26,6 +27,8 @@ class ParController extends Controller {
     }
 
     public function dashboard(){
+
+        
         $transactions = Logs::where('affected_field','doc_status')->orderBy('id','desc')->get();
         $items        = Logs::where('affected_field','qty')->orderBy('id','desc')->get();
         $activities   = Logs::orderBy('id','desc')->paginate(10);
@@ -35,7 +38,7 @@ class ParController extends Controller {
 
     public function index(Request $request){
 
-        
+        // dd($request);
         $close_data = SelectMaster::where('select_option','close_par')->orderBy('id','asc')->get();
 
         $datas = parDetails::orderBy('header_id', 'desc');
@@ -66,6 +69,7 @@ class ParController extends Controller {
 
     }
 
+
     public function details($par){
 
         $par_details = parDetails::where('header_id','=',$par)->get();
@@ -77,10 +81,12 @@ class ParController extends Controller {
     public function items_per_employee($id){
 
         $datas = parDetails::where('employee_id',$id)->get();
+
+        
         
         return view('par.items_per_employee',compact('datas'));
     }
-
+    
     public function edit($id){
 
         $items = parDetails::where('header_id',$id)->get();
@@ -90,7 +96,7 @@ class ParController extends Controller {
         return view('par.edit',compact('items','par','count_items'));
 
     }
-
+    
     public function item_delete(Request $req){
         $item = accountabilityDetails::where('id',$req->id)->update([ 
             'added_by' => Auth::user()->domainAccount,
@@ -98,7 +104,8 @@ class ParController extends Controller {
         ]);
 
         if($item){
-            accountabilityDetails::find($req->id)->delete();
+
+         accountabilityDetails::find($req->id)->delete();
         }
         
         return back()->with('sucess','Item deleted successfully!');
@@ -112,7 +119,7 @@ class ParController extends Controller {
         return view('par.recreate_par',compact('items','par'));
 
     }
-
+    
     public function create(){
 
         return view('par.add');
@@ -204,7 +211,7 @@ class ParController extends Controller {
                     $this->close_transfered_item($qty[$key],$i,$req->refpar);
 
                     accountabilityDetails::where('item',$i)->where('status','=','OPEN')->update([
-                        // 'status' => 'CLOSED',
+                        'status' => 'CLOSED',
                         'closed_date' => $today,
                         'closed_by' => 'manual transfer'
                     ]);
@@ -321,7 +328,7 @@ class ParController extends Controller {
                 $items->save();  
 
                 accountabilityDetails::where('header_id',$request->hid)->where('item',$i)->update([
-                    // 'status' => 'CLOSED'
+                    'status' => 'CLOSED'
                 ]);
 
             }
@@ -417,14 +424,14 @@ class ParController extends Controller {
 
         if($header){
             accountabilityDetails::where('header_id','=',$req->pid)->update([ 
-                // 'status'   => 'CLOSED',
+                'status'   => 'CLOSED',
                 'added_by' => Auth::user()->domainAccount
             ]);
         } 
 
         return back()->with('success','Par cancelled successfully');
     }
-//
+
 
     public function print($id){
 
@@ -439,7 +446,7 @@ class ParController extends Controller {
 
     }
 
-// Close Item
+    // Close Item
     public function close_item(Request $req){
 
         $item = accountabilityDetails::where('item',$req->iid)->where('header_id',$req->hid)->first();
@@ -484,12 +491,26 @@ class ParController extends Controller {
 
 // Transfer Accountability
     public function auto_transfer_item(Request $req){
-        
+        // dd($req);
         $emp  = explode(' - ',$req->emp);
+        
+        $lock = accountabilityDetails::where('item',$req->iid)->where('header_id',$req->hid)->update([ 
+            'is_lock' => 1,
+            'status' => 'CLOSED',
+            'closed_date' => Carbon::today(),
+            'closed_by' => 'manual transfer'
+         ]);
 
-        $lock = accountabilityDetails::where('item',$req->iid)->where('header_id',$req->hid)->update([ 'is_lock' => 1 ]);
+        //   It retrieves all the data from this request object, typically used in web applications 
+        // to capture user input or information sent to a server.
+         logger(json_encode($req->all()));
 
+
+        //  This function converts the PHP array or object into a JSON string representation.
         if($lock){
+            // $source = parDetails::where('id', $req->xid)->update([ 
+            //     'status' => 'CLOSED'
+            // ]);
             $item_data = accountabilityHeaders::create([
                 'ptype'           => 'transfer',
                 'ref_par'         => $req->hid,
@@ -500,10 +521,11 @@ class ParController extends Controller {
                 'dept'            => $req->emp_dept,
                 'document_date'   => Carbon::today(),
                 'added_by'        => Auth::user()->domainAccount,
-                'doc_status'      => 'saved'
+                'doc_status'      => 'CLOSED'
             ]);
+            logger(json_encode($item_data));
 
-            $transfered = $this->transfer_item($req,$item_data);
+            $transfered = $this->transfer_item($req,$item_data,$req->iid);
         }
 
         return back()->with('success','Accountability transfered successfully');
@@ -512,47 +534,53 @@ class ParController extends Controller {
 
     // multiple transfer item
     public function multiple_transfer(Request $req){
-
-        
+      
         $emp  = explode(' - ',$req->emp);
-        $lock = accountabilityDetails::where('item',$req->iid)->where('header_id',$req->hid)->update([ 'is_lock' => 1 ]);
-        // dd($req->new_condition[1]);
-        foreach($req->quantity as $key => $quantity)
-        {
-            if($lock){
-                $item_data = accountabilityHeaders::create([
-                    'ptype'           => 'transfer',
-                    'ref_par'         => $req->hid,
-                    'employee_id'     => $req->dept != '' ? 0 : $emp[0],
-                    'emp_name'        => $req->dept != '' ? '' : $emp[1],
-                    'dept_id'         => $emp[0] != '' ? 0 : $req->dept,
-                    'is_dept'         => $req->dept != '' ? '1' : '0',
-                    'dept'            => $req->emp_dept,
-                    'document_date'   => Carbon::today(),
-                    'added_by'        => Auth::user()->domainAccount,
-                    'doc_status'      => 'saved'
-                ]);
-                $req['new_condition'] = $req->condition[$key];
-                $req['qty'] = $quantity;
-                $transfered = $this->transfer_item($req,$item_data);
-            }
-        }
-     
+        
+        $item_data = accountabilityHeaders::create([
+                'ptype'           => 'transfer',
+                'ref_par'         => $req->hid,
+                'employee_id'     => $req->dept != '' ? 0 : $emp[0],
+                'emp_name'        => $req->dept != '' ? '' : $emp[1],
+                'dept_id'         => $emp[0] != '' ? 0 : $req->dept,
+                'is_dept'         => $req->dept != '' ? '1' : '0',
+                'dept'            => $req->emp_dept,
+                'document_date'   => Carbon::today(),
+                'added_by'        => Auth::user()->domainAccount,
+                'doc_status'      => 'CLOSED'
+        ]);
+        
 
-        return back()->with('success','Accountability transfered successfully');
+        foreach($req->item_ids as $key => $ids){
+            
+           $lock = accountabilityDetails::where('item',$ids)->where('header_id',$req->hid)->update([ 
+                'is_lock' => 1, 
+                'status' => 'CLOSED',
+                'closed_date' => Carbon::today(),
+                'closed_by' => 'manual transfer'
+            ]);
+
+            if($lock){
+               
+                $req['new_condition'] = $req->condition[$key];
+                $req['qty'] = $req->quantity[$key];
+                $transfered = $this->transfer_item($req,$item_data,$ids);
+            }
+            
+        }
+        
+    
+         return back()->with('success','Accountability transfered successfully');
 
     }
 
-
-
-
-
-    public function transfer_item($r,$i){
+         public function transfer_item($r,$i,$iid){
         
         // dd('breathe');
+        //Log::info('IDs', ['item_ids' => $iid]);
         $header = accountabilityDetails::create([
             'header_id'     => $i->id,
-            'item'          => $r->iid,
+            'item'          => $iid,
             'is_new'        => 0,
             'qty'           => $r->qty,
             't_cost'        => $r->cost,
@@ -560,16 +588,19 @@ class ParController extends Controller {
             'new_condition' => $r->new_condition,
             'added_by'      => Auth::user()->domainAccount
         ]);
+        
+        logger(json_encode($header));
     }
 
     public function transaction_details($id)
     {
+    
     $par_details = parDetails::where('header_id','=',$id)->get();
-
+    
     return view('par.transaction_details',compact('par_details'));
     }
-
+ 
 //
-    // new update for par controller
+    
 }
 ?>
