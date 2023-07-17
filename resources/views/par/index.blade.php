@@ -20,7 +20,7 @@
     padding-left: 6.25rem;
     margin-top: -22px;
         }
-/* index */
+
     </style>
 @endsection
 
@@ -101,23 +101,19 @@
                 @php
                     $grouped = $datas->groupBy('header_id');
                     $grouped->toArray();
+                    $btn ='';
                 @endphp
 
                 @forelse($grouped as $d)
                     @php
                         if($d[0]['doc_status'] == 'saved'){
                             $btn = '#10b759';
-                        }
-
-                        if($d[0]['doc_status'] == 'posted'){
-                            $btn = '#ffc107';
-                        }
-
-                        if($d[0]['doc_status'] == 'closed'){
+                        }elseif($d[0]['doc_status'] == 'closed'){
+                        // }elseif($d[0]['doc_status'] == 'closed' || $d[0]['status'] == 'CLOSED'){
                             $btn = '#dc3545';
-                        }
-
-                        if($d[0]['doc_status'] == 'adjustment'){
+                        }elseif($d[0]['doc_status'] == 'posted'){
+                            $btn = '#ffc107';
+                        }elseif($d[0]['doc_status'] == 'adjustment'){
                             $btn = '#00b8d4';
                         }
                     @endphp
@@ -134,7 +130,7 @@
 
                                 &nbsp;<small>{{ $d[0]['dept'] }} </small> -
                                 &nbsp;<small>{{ $d[0]['document_date'] }} </small> -
-                                &nbsp;<small> [ <strong> doc status </strong> {{ strtoupper($d[0]['doc_status']) }} ] </small> - 
+                                &nbsp;<small> [ <strong> doc status </strong> {{ strtoupper($d[0]['doc_status']) }} ] </small>
                                 &nbsp;<small> [ <strong> item status </strong> {{ strtoupper($d[0]['status']) }} ] </small> 
                             </h6>
                         </div>
@@ -218,7 +214,6 @@
                                     <th>
                                         <a href="#isTransfer"><button type="button" class="btn btn-primary transfered isTransfer-{{$d[0]['header_id']}}" id="isTransfer" style="display:none; height:24px;" data-toggle="modal" data-target="#mod"><div class="button" style="margin-top:-4px">Transfer</div></button></a>
                                     </th>
-    
                                 </tr>
                             </thead>
                             <tbody>
@@ -231,23 +226,18 @@
 
                                 {{-- @if($i->) --}}
                                 <tr class="tx-12">
+
                                     <td>{{ isset($i->stock_code) ? $i->stock_code : 'N/A' }}</td>
                                     <td>{{ $i->description }}</td>
                                     <td>{{ $i->serial_no }}</td>
                                     <td>
-                                        @if($i->status == 'OPEN')
-                                            <span class="label label-sm label-success ">OPEN</span>
-                                        @endif
-
-                                        @if($i->status == 'CLOSED')
-                                            <span class="label label-sm label-danger ">CLOSED</span>
-                                        @endif
+                                        {{$i->status}}
                                     </td>
                                     <td>{{ $i->qty }}</td>
                                     <td>{{ number_format($i->cost,2) }}</td>
                                     
                                     <td>
-                                        {{-- {{$d[0]['doc_status']}}  --}}
+                                        
                                         @if($d[0]['doc_status'] == 'saved' || $d[0]['doc_status'] == 'closed' || $d[0]['doc_status'] == 'adjustment')
                                             <a href="/item/details/{{ $i->item_id }}" data-placement="bottom" title="View Par Details" target="_blank">
                                                 <i class="fa fa-eye"></i>
@@ -267,7 +257,7 @@
                                                             <i class="fa fa-times"></i>
                                                         </a>
                                                        
-                                                        <a href="#transfer-item" class="mg-l-5 transfer-item" data-hid="{{$d[0]['header_id']}}" data-iid="{{$i->item_id}}" data-cost="{{$i->cost}}" data-qty="{{$i->qty}}" data-dept="{{$i->is_dept}}" data-toggle="modal" title="Transfer Item">
+                                                        <a href="#transfer-item" class="mg-l-5 transfer-item" data-hid="{{$d[0]['header_id']}}" data-iid="{{$i->item_id}}" data-xid="{{$i->id}}" data-cost="{{$i->cost}}" data-qty="{{$i->qty}}" data-dept="{{$i->is_dept}}" data-toggle="modal" title="Transfer Item">
                                                         <i class="fa fa-link"></i>    
                                                     </a>   
                                                     @endif
@@ -277,8 +267,8 @@
                                     </td>
                                     <td>
                                       
+                                     @if(count($d) > 1 && $i->status != 'CLOSED')
                                     
-                                     @if(count($d) > 1)
                                     <input class='checkbox' type="checkbox" data-check="checkbox-{{$d[0]['header_id']}}" name="checkboxes[]" value="{{$i->id}}" data-row="{{json_encode($i)}}" data-header="{{$d[0]['header_id']}}">
                                     @endif
                                    </td>                                                                                                       
@@ -321,6 +311,7 @@
                     <input type="hidden" name="iid" id="item_id" class="itemid">
                     <input type="hidden" name="hid" id="header_id" class="headerid">
                     <input type="hidden" name="cost" id="icost">
+                    <input type="hidden" name="xid" class="xid">
                     <input type="hidden" class="dept" name="isdept" id="isdept">
                     
                     <div class="form-group" id="personaldiv">
@@ -404,6 +395,8 @@
             $(".ptf").append(
             `            <div class="checkboxid">${checkbox.id}</div>
                       <div>${checkbox.description}</div>
+                      <input type="hidden" name="item_ids[]" id="item_ids" class="form-control text-right item_ids" value="${checkbox.item_id}">
+
                     <div class="form-group">
                         <label class="tx-10 tx-uppercase tx-medium tx-spacing-1 mg-b-5 tx-color-03">Qty <i class="tx-danger">*</i></label>
                         <input required type="number" name="quantity[]" id="qty_t" class="form-control text-right qty_t" value="${checkbox.qty}">
@@ -451,8 +444,8 @@
     </script>
 
 
-{{-- start --}}
-<script type="text/javascript"> 
+    {{-- start --}}
+    <script type="text/javascript"> 
 
     $(document).ready(function() {
         // Function to check if more than one checkbox is checked
@@ -480,16 +473,7 @@
         });
 
         $(".checkbox").click(function() {
-            // var table = $(this).closest("table");
-                
-            // tableTR = table.closest("tr");
-            // td = tableTR.find("th"); 
-            // $.each(td, function() {                // Visits every single <td> element
-            //     console.log($(this).text());         // Prints out the text within the <td>
-            // });
-            // Get the header ID from the clicked row
-            // var headerId = $(this).closest('div.table-responsive').attr('id');
-
+          
             var headerId = $(this).closest('div.table-responsive').attr('id').replace('detailsd', '');
 
             // Get the checked checkbox value
