@@ -117,6 +117,8 @@
                             $btn = '#00b8d4';
                         }
                     @endphp
+                   
+                    @if($d[0]['status'] !== 'CLOSED')
                 <div class="trainings-wrapper" style="border-left: 5px solid {{ $btn }};">
                     <div class="card-header d-sm-flex align-items-start justify-content-between pd-b-0 pd-l-1">
                         <div class="mg-t-10">
@@ -197,7 +199,7 @@
                                 </span>
                             </div>
                         </div>
-                        
+                    
                     <div class="table-responsive" style="display: none;" id="detailsd{{ $d[0]['header_id'] }}">
                         
                         <table class="table table-sm">
@@ -223,8 +225,7 @@
                                 @php
                                     $items .= $i->qty.':'.$i->item_id.'|';
                                 @endphp
-
-                                {{-- @if($i->) --}}
+                                    
                                 <tr class="tx-12">
 
                                     <td>{{ isset($i->stock_code) ? $i->stock_code : 'N/A' }}</td>
@@ -268,7 +269,6 @@
                                     <td>
                                       
                                      @if(count($d) > 1 && $i->status != 'CLOSED')
-                                    
                                     <input class='checkbox' type="checkbox" data-check="checkbox-{{$d[0]['header_id']}}" name="checkboxes[]" value="{{$i->id}}" data-row="{{json_encode($i)}}" data-header="{{$d[0]['header_id']}}">
                                     @endif
                                    </td>                                                                                                       
@@ -279,7 +279,9 @@
                             </tbody>
                         </table>
                     </div>
+                    
                 </div>
+                @endif
                 @empty
                     <tr>
                         <td><center>No accountability found</center></td>
