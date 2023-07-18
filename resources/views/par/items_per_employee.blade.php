@@ -61,8 +61,8 @@
                             @endphp
                             @foreach($d as $i)
                                 @php $total += $i->qty*$i->cost @endphp
-                                @if($i->status != 'CLOSED')
-                                <tr>
+                            @if($i->status != 'CLOSED' && $i->doc_status != 'CLOSED')
+                            <tr>
                                 <td class="tx-color-03 tx-normal">{{ $i->document_date }}</td>
                                 <td class="tx-medium">{{ $i->refcode }}</td>
                                 <td class="tx-medium">{{ $i->description }}</td>
