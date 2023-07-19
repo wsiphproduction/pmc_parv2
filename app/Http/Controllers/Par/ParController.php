@@ -64,7 +64,6 @@ class ParController extends Controller {
         }
 
         $datas = $datas->paginate(20);
-
         return view('par.index',compact('datas','close_data',));
 
     }
@@ -457,7 +456,7 @@ class ParController extends Controller {
             'closed_by'   => Auth::user()->domainAccount,
             'closed_reason' => 'auto-close',
             'status' => $deduct == 0 ? 'CLOSED' : 'OPEN',
-            'status' => $deduct == 0, 'OPEN',
+            // 'status' => $deduct == 0, 'OPEN',
             'qty' => $deduct,
             'new_condition' => $req->condition
         ]);
