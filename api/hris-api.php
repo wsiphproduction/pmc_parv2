@@ -38,9 +38,15 @@ if(isset($_GET['emp'])){
 	// for($i=0; $rowempdata = $empdatasql->fetch(); $i++){     
 	// $result .= "<li class='emp_li'><a href='#'>".$rowempdata['EmpID']." - ".$rowempdata['FullName']."<span style='display:none;'>=".$rowempdata['DeptDesc'].'</span></a></li>|';
 	// }
-		echo $result;
-}
+	if($result == '')
+		{
+			echo "no employee found";
 
+		}else{
+			echo $result;
+		}
+		
+}
 if(isset($_GET['dept'])){
 
 	$dept = $_GET['dept'];
@@ -54,7 +60,14 @@ if(isset($_GET['dept'])){
 	for($i=0; $rowempdata = $empdatasql->fetch(); $i++){   
 		$result .= "<li class='dept_li'><a href='#'>".$rowempdata['DeptDesc'].'</a></li>|';
 	}
-		echo $result;
+	if($result == '')
+		{
+			echo "no department found";
+
+		}else{
+			echo $result;
+		}
+
 }
 
     
