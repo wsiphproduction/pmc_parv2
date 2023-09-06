@@ -36,6 +36,9 @@
     @endphp
 
     @foreach($grouped as $par)
+    @php
+    $par_header = \App\accountabilityHeaders::find($par[0]['refcode']);
+    @endphp
         <div class="bd-b mg-t-20">
             <div class="container pd-x-0 pd-lg-x-10 pd-xl-x-0">
                 <div class="d-sm-flex align-items-center justify-content-between">
@@ -57,7 +60,9 @@
                 <p class="mg-b-0" style="font-style: italic;">@if($par[0]['is_dept'] == 0) {{ $par[0]['dept'] }} @endif</p>
             </div>
             <div class="col-sm-6 tx-right d-none d-md-block">
-                <label class="tx-sans tx-uppercase tx-10 tx-medium tx-spacing-1 tx-color-03">Document Status</label>
+                <label class="tx-sans tx-uppercase tx-10 tx-medium tx-spacing-1 tx-color-03">Document Status
+                    {{$par[0]['doc_status']}}
+                </label>
                 <h1 class="tx-normal tx-color-04 mg-b-10 tx-spacing--2">
                     @if($par[0]['doc_status'] == 'saved')
                         SAVED
@@ -69,7 +74,8 @@
 
                     @if($par[0]['doc_status'] == 'closed')
                         CLOSED
-                    @endif</h1>
+                    @endif
+                    </h1>
             </div>
             <div class="col-sm-6 col-lg-8 mg-sm-t-20">
                 <label class="tx-sans tx-uppercase tx-10 tx-medium tx-spacing-1 tx-color-03">Par Details</label>
@@ -82,7 +88,7 @@
                 <ul class="list-unstyled lh-7">
                     <li>
                         <span>Issuance Doc Ref # : </span>
-                        <span>{{$par[0]['doc_ref']}}</span>
+                        <span>{{ $par[0]['doc_ref']}}</span>
                     </li>
                     <li>
                         <span>Safety : </span>
@@ -90,7 +96,16 @@
                     </li>
                     <li>
                         <span>Reference Par # : </span>
-                        <span>{{ $par[0]['bis_header_id'] }}</span>
+                        <span>{{ $par[0]['ref_par'] }}</span>
+                    </li>
+                    <li>
+                        <span>PO # : </span>
+                        <span>{{ $par[0]['po_no'] }}</span>    
+                    </li>
+                    <li>
+                        <span>CIS/S.I # : </span>
+                        <span>{{ $par[0]['cis_si_no'] }}</span>
+                        
                     </li>
                 </ul>
             </div>
@@ -139,7 +154,7 @@
                         <tr>
                             <td><a href="/item/details/{{ $item->item_id }}">{{ isset($item->stock_code) ? $item->stock_code : 'N/A' }}</a></td>
                             <td class="d-none d-sm-table-cell tx-color-03">{{ $item->description }}</td>
-                            <td>{{ $item->serial_no }}</td>
+                            <td>{{ $par_header->serial_no }}</td>
                             <td>{{ $item->status }}</td>
                             <td class="tx-right">{{ $item->qty == '0.00' ? 0 : $item->qty }}</td>
                             <td class="tx-right">{{ number_format($item->cost,2) }}</td>
