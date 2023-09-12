@@ -253,7 +253,7 @@
                                                     <i class="fa fa-eye"></i>
                                                 </a>
                                                 @if(Auth::user()->role == 'admin' || Auth::user()->role == 'read and write')
-                                                    @if($i->is_lock == 0)
+                                                    
                                                         <a href="#close-item" class="mg-l-5 close-item" data-hid="{{$d[0]['header_id']}}" data-iid="{{$i->item_id}}" data-qty="{{$i->qty}}" data-cost="{{$i->cost}}" data-toggle="modal" title="Close Item">
                                                             <i class="fa fa-times"></i>
                                                         </a>
@@ -261,7 +261,7 @@
                                                         <a href="#transfer-item" class="mg-l-5 transfer-item" data-hid="{{$d[0]['header_id']}}" data-iid="{{$i->item_id}}" data-xid="{{$i->id}}" data-cost="{{$i->cost}}" data-qty="{{$i->qty}}" data-dept="{{$i->is_dept}}" data-toggle="modal" title="Transfer Item">
                                                         <i class="fa fa-link"></i>    
                                                     </a>   
-                                                    @endif
+                                                  
                                                 @endif
                                             @endif
                                         @endif
