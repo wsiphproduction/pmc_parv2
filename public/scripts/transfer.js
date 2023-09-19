@@ -111,6 +111,7 @@ $(document).on("click", ".transfer-item", function () {
     $(".modal-body #qty_t").val($(this).data('qty'));
     $(".modal-body #icost").val($(this).data('cost'));
     $(".modal-body #isdept").val($(this).data('dept'));
+    $(".modal-body .xid").val($(this).data('xid'));
 
     if($(this).data('dept') == 1){
         $(".modal-body #deptdiv").show();

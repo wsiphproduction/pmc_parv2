@@ -16,13 +16,13 @@ class SearchController extends Controller
         if($request->get('query'))
         {
             $query = $request->get('query');
-            $data  = file_get_contents("http://172.16.20.27/parv2/api/hris-api.php?emp=".$query);
+            $data  = file_get_contents("http://172.16.20.28/parv2/api/hris-api.php?emp=".$query);
             
             $output = '<ul class="dropdown-menu wd-100p" style="display:block; position:relative">';
 
             foreach (explode("|",$data) as $row) {
                 $output .= $row;
-        }
+        }   
             $output .= '</ul>';
 
             echo $output;
@@ -34,7 +34,7 @@ class SearchController extends Controller
         if($request->get('query'))
         {
             $query = $request->get('query');
-            $data  = file_get_contents("http://172.16.20.27/parv2/api/hris-api.php?dept=".$query);
+            $data  = file_get_contents("http://172.16.20.28/parv2/api/hris-api.php?dept=".$query);
             
             $output = '<ul class="dropdown-menu wd-100p" style="display:block; position:relative">';
 
@@ -262,11 +262,12 @@ class SearchController extends Controller
             ->where('accountable','LIKE',"$req->accountable%")
             ->where('description','LIKE',"$req->description%")
             ->where('doc_status','LIKE',"$req->doc_status%")
+            ->where('header_id','LIKE',"$req->header_id%")
             ->get();
             
         return view('search.par_search_result',compact('par_details')); 
     }
+
     
-    // nnew update search controller
 
 }

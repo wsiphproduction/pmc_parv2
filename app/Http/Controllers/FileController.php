@@ -9,11 +9,13 @@ use App\Import\PPEItemsUpload;
 use App\Import\ContractorsUpload;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Items;
 
 class FileController extends Controller
 {
     public function fileUpload(Request $req)
     {
+        
         $file_path = '\\\\ftp\FTP\APP_UPLOADED_FILES\par\\';
         $files = $req->file('uploadFile');
 
@@ -48,15 +50,30 @@ class FileController extends Controller
         copy($dir, $dst);
     }
 
-    public function upload_stocked_items() 
+    public function upload_stocked_items(Request $request) 
     {
-        Excel::import(new StockedItemsUpload,request()->file('file'));
-           
-        return back()->with('success','Stocked Items successfully uploaded');
+
+        try {
+            // Validate the uploaded file
+            request()->validate([
+                'file' => 'required|file|mimes:xls,xlsx',
+            ]);
+    
+            // Import the data from the Excel file using Laravel Excel
+            Excel::import(new StockedItemsUpload, request()->file('file'));
+
+            return back()->with('success', 'Stocked Items successfully uploaded');
+        } catch (\Exception $e) {
+            // Handle any exceptions, e.g., if there was an issue with the import
+            return back()->with('error', 'Error: ' . $e->getMessage());
+
+        }
     }
 
-    public function upload_ppe_items() 
+
+    public function upload_ppe_items(Request $request) 
     {
+        
         Excel::import(new PPEItemsUpload,request()->file('file')); 
 
         return back()->with('success','PPE Items successfully uploaded');
@@ -64,6 +81,7 @@ class FileController extends Controller
 
     public function upload_contractors() 
     {
+       
         Excel::import(new ContractorsUpload,request()->file('file')); 
 
         return back()->with('success','Contractor list successfully uploaded');
@@ -71,4 +89,3 @@ class FileController extends Controller
     
     
 }
-

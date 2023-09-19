@@ -62,6 +62,7 @@
                     <a href="#" class="nav-link mg-r-10"><i data-feather="file-text"></i> <span>Reports</span></a>
                     <ul>
                         <li><a href="/report/par-summary"><span>Par Summary</span></a></li>
+                        <li><a href="/report/contractor"><span>Contractor List</span></a></li>
                     </ul>
                 </li>
             @endif

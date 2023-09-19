@@ -59,8 +59,8 @@
                             ?>
                             <?php $__currentLoopData = $d; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <?php $total += $i->qty*$i->cost ?>
-                                <?php if($i->status != 'CLOSED'): ?>
-                                <tr>
+                            <?php if($i->status != 'CLOSED' && $i->doc_status != 'CLOSED'): ?>
+                            <tr>
                                 <td class="tx-color-03 tx-normal"><?php echo e($i->document_date); ?></td>
                                 <td class="tx-medium"><?php echo e($i->refcode); ?></td>
                                 <td class="tx-medium"><?php echo e($i->description); ?></td>

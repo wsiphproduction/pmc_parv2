@@ -145,7 +145,7 @@
                 $('#emp_spinner').show();
                 clearTimeout(typingTimer);
                 typingTimer = setTimeout(doneTypingEmployee, 2000);
-                console.log('gee');
+                // console.log('gee');
             });
 
             function doneTypingEmployee(){

@@ -13,10 +13,10 @@
         .panel-body a { font-size: 14px; color: white; }
 
         .form-check {
-    position: relative;
-    display: block;
-    padding-left: 6.25rem;
-    margin-top: -22px;
+            position: relative;
+            display: block;
+            padding-left: 6.25rem;
+            margin-top: -22px;
         }
 
     </style>
@@ -76,6 +76,7 @@
                                 <option value="posted" <?php echo e(request()->has('doc_status') && request('doc_status') === 'posted' ? 'selected' : ''); ?>>Posted</option>
                                 <option value="adjustment" <?php echo e(request()->has('doc_status') && request('doc_status') === 'adjustment' ? 'selected' : ''); ?>>Adjustment</option>
                                 <option value="closed" <?php echo e(request()->has('doc_status') && request('doc_status') === 'closed' ? 'selected' : ''); ?>>Closed</option>
+                                <option value="transfered" <?php echo e(request()->has('doc_status') && request('doc_status') === 'transfered' ? 'selected' : ''); ?>>Transfered</option>
                             </select>
                         </th>
                         <th class="wd-10p"><button type="submit" class="btn btn-sm btn-primary"><i data-feather="filter"></i></button></th>
@@ -99,196 +100,207 @@
                 <?php
                     $grouped = $datas->groupBy('header_id');
                     $grouped->toArray();
+                    $btn ='';
                 ?>
 
                 <?php $__empty_1 = true; $__currentLoopData = $grouped; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $d): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                     <?php
                         if($d[0]['doc_status'] == 'saved'){
                             $btn = '#10b759';
-                        }
-
-                        if($d[0]['doc_status'] == 'posted'){
-                            $btn = '#ffc107';
-                        }
-
-                        if($d[0]['doc_status'] == 'closed'){
+                        }elseif($d[0]['doc_status'] == 'closed'){
+                        // }elseif($d[0]['doc_status'] == 'closed' || $d[0]['status'] == 'CLOSED'){
                             $btn = '#dc3545';
-                        }
-
-                        if($d[0]['doc_status'] == 'adjustment'){
+                        }elseif($d[0]['doc_status'] == 'posted'){
+                            $btn = '#ffc107';
+                        }elseif($d[0]['doc_status'] == 'adjustment'){
                             $btn = '#00b8d4';
                         }
+                $header_items = \App\accountabilityDetails::where('header_id', $d[0]['header_id'])->get();
+                $has_close = []; 
+                foreach($header_items as $item){
+                    $has_close[] = $item->status == 'CLOSED';
+                }
+                $all_true = array_reduce($has_close, function ($carry, $item) {
+                return $carry && $item;
+            }, true);
                     ?>
-                <div class="trainings-wrapper" style="border-left: 5px solid <?php echo e($btn); ?>;">
-                    <div class="card-header d-sm-flex align-items-start justify-content-between pd-b-0 pd-l-1">
-                        <div class="mg-t-10">
-                            <h6 class="mg-b-5"><a href="javascript:;" onclick="$('#detailsd<?php echo e($d[0]['header_id']); ?>').toggle();"><?php echo e($d[0]['refcode']); ?> :</a>
-                                   
-                                <?php if($d[0]['is_dept'] == 0): ?>
-                                    <a href="/<?php echo e($d[0]['employee_id']); ?>/accountability"><?php echo e($d[0]['employee_id']); ?> : <?php echo e($d[0]['emp_name']); ?></a>
-                                <?php else: ?>
-                                    <?php echo e($d[0]['accountable']); ?>
 
-                                <?php endif; ?>
-
-                                &nbsp;<small><?php echo e($d[0]['dept']); ?> </small> -
-                                &nbsp;<small><?php echo e($d[0]['document_date']); ?> </small> -
-                                &nbsp;<small> [ <strong> doc status </strong> <?php echo e(strtoupper($d[0]['doc_status'])); ?> ] </small> - 
-                                &nbsp;<small> [ <strong> item status </strong> <?php echo e(strtoupper($d[0]['status'])); ?> ] </small> 
-                            </h6>
-                        </div>
-
-                        <div class="d-flex mg-t-20 mg-sm-t-0">
-                            <span class="pull-right mg-b-5">
-                                <div class="d-none d-md-block">
-                                    <?php if($d[0]['doc_status'] == 'closed'): ?>
-                                        <a href="/par/details/<?php echo e($d[0]['header_id']); ?>" title="View Par Details" target="_blank" class="btn btn-secondary btn-xs">
-                                            <i class="fa fa-eye"></i>
-                                        </a>
-                                        <a href="/par/print/<?php echo e($d[0]['header_id']); ?>" title="Print Par Details" target="_blank" title="Print PAR" class="btn btn-info btn-xs">
-                                            <i class="fa fa-print"></i>
-                                        </a>
+                    <?php if(in_array(false, $has_close)): ?>
+    
+                    <div class="trainings-wrapper" style="border-left: 5px solid <?php echo e($btn); ?>;">
+                        <div class="card-header d-sm-flex align-items-start justify-content-between pd-b-0 pd-l-1">
+                            <div class="mg-t-10">
+                                <h6 class="mg-b-5"><a href="javascript:;" onclick="$('#detailsd<?php echo e($d[0]['header_id']); ?>').toggle();"><?php echo e($d[0]['refcode']); ?> :</a>
+                                    
+                                    <?php if($d[0]['is_dept'] == 0): ?>
+                                        <a href="/<?php echo e($d[0]['employee_id']); ?>/accountability"><?php echo e($d[0]['employee_id']); ?> : <?php echo e($d[0]['emp_name']); ?></a>
                                     <?php else: ?>
-                                        <?php if($d[0]['doc_status'] == 'posted'): ?>
-                                            <a href="/par/details/<?php echo e($d[0]['header_id']); ?>" title="View Par Details" target="_blank" class="btn btn-secondary btn-xs">
-                                                <i class="fa fa-eye"></i>
-                                            </a>
-                                            <a href="/par/print/<?php echo e($d[0]['header_id']); ?>" title="Print Par Details" target="_blank" class="btn btn-info btn-xs">
-                                                <i class="fa fa-print"></i>
-                                            </a>
-                                            <?php if(Auth::user()->role == 'admin' || Auth::user()->role == 'read and write'): ?>
-                                                <a href="/par/recreate/<?php echo e($d[0]['header_id']); ?>" title="Adjust Par" class="btn btn-warning btn-xs">
-                                                    <i class="fa fa-reply"></i>
-                                                </a>
-                                                <a href="#" title="Get Link" data-toggle="modal" data-target="#email-par" data-pid="<?php echo e($d[0]['header_id']); ?>" class="btn btn-primary btn-xs email-par">
-                                                    <i data-feather="external-link"></i></i>
-                                                </a>
-                                            
-                                                <?php if(\App\accountabilityDetails::countItemQty($d[0]['header_id']) == 0): ?>
-                                                <a href="#" title="Close PAR" data-toggle="modal" data-target="#close-par" data-pid="<?php echo e($d[0]['header_id']); ?>" class="btn btn-danger btn-xs close-par">
-                                                    <i data-feather="x-square"></i>
-                                                </a>
-                                                <?php endif; ?>
-                                            <?php endif; ?>
+                                        <?php echo e($d[0]['accountable']); ?>
 
-                                        <?php else: ?>
+                                    <?php endif; ?>
+
+                                    &nbsp;<small><?php echo e($d[0]['dept']); ?> </small> -
+                                    &nbsp;<small><?php echo e($d[0]['document_date']); ?> </small> -
+                                    &nbsp;<small> [ <strong> doc status </strong> <?php echo e(strtoupper($d[0]['doc_status'])); ?> ] </small>
+                                    &nbsp;<small> [ <strong> item status </strong> <?php echo e($all_true ? 'CLOSED' : 'OPEN'); ?> ] </small> 
+                                </h6>
+                            </div>
+
+                            <div class="d-flex mg-t-20 mg-sm-t-0">
+                                <span class="pull-right mg-b-5">
+                                    <div class="d-none d-md-block">
+                                        <?php if($d[0]['doc_status'] == 'closed'): ?>
                                             <a href="/par/details/<?php echo e($d[0]['header_id']); ?>" title="View Par Details" target="_blank" class="btn btn-secondary btn-xs">
                                                 <i class="fa fa-eye"></i>
                                             </a>
-                                            <a href="/par/print/<?php echo e($d[0]['header_id']); ?>" title="Print Par Details" target="_blank" class="btn btn-info btn-xs">
+                                            <a href="/par/print/<?php echo e($d[0]['header_id']); ?>" title="Print Par Details" target="_blank" title="Print PAR" class="btn btn-info btn-xs">
                                                 <i class="fa fa-print"></i>
                                             </a>
-                                            <?php if(Auth::user()->role == 'admin' || Auth::user()->role == 'read and write'): ?>
-                                                <a href="/par/edit/<?php echo e($d[0]['header_id']); ?>" title="Edit Par Details" target="_blank" class="btn btn-success btn-xs">
-                                                    <i class="fa fa-edit"></i>
+                                        <?php else: ?>
+                                            <?php if($d[0]['doc_status'] == 'posted'): ?>
+                                                <a href="/par/details/<?php echo e($d[0]['header_id']); ?>" title="View Par Details" target="_blank" class="btn btn-secondary btn-xs">
+                                                    <i class="fa fa-eye"></i>
                                                 </a>
-                                                <a href="#" data-toggle="modal" title="Post Par" data-target="#post-par" data-pid="<?php echo e($d[0]['header_id']); ?>" data-refpar="<?php echo e($d[0]['ref_par']); ?>" class="btn btn-warning btn-xs post-par">
-                                                    <i class="fa fa-stamp"></i>
+                                                <a href="/par/print/<?php echo e($d[0]['header_id']); ?>" title="Print Par Details" target="_blank" class="btn btn-info btn-xs">
+                                                    <i class="fa fa-print"></i>
                                                 </a>
-                                                <a href="#" title="Get Link" data-toggle="modal" data-target="#email-par" data-pid="<?php echo e($d[0]['header_id']); ?>" class="btn btn-primary btn-xs email-par">
-                                                    <i data-feather="external-link"></i></i>
-                                                </a>
-                                                <?php if(\App\accountabilityDetails::countItemQty($d[0]['header_id']) == 0): ?>
+                                                <?php if(Auth::user()->role == 'admin' || Auth::user()->role == 'read and write'): ?>
+                                                    <a href="/par/recreate/<?php echo e($d[0]['header_id']); ?>" title="Adjust Par" class="btn btn-warning btn-xs">
+                                                        <i class="fa fa-reply"></i>
+                                                    </a>
+                                                    <a href="#" title="Get Link" data-toggle="modal" data-target="#email-par" data-pid="<?php echo e($d[0]['header_id']); ?>" class="btn btn-primary btn-xs email-par">
+                                                        <i data-feather="external-link"></i></i>
+                                                    </a>
+                                                
+                                                    <?php if(\App\accountabilityDetails::countItemQty($d[0]['header_id']) == 0): ?>
                                                     <a href="#" title="Close PAR" data-toggle="modal" data-target="#close-par" data-pid="<?php echo e($d[0]['header_id']); ?>" class="btn btn-danger btn-xs close-par">
                                                         <i data-feather="x-square"></i>
                                                     </a>
                                                     <?php endif; ?>
                                                 <?php endif; ?>
-                                            <?php endif; ?>
-                                        <?php endif; ?>
-                                    </div>
-                                </span>
-                            </div>
-                        </div>
-                        
-                    <div class="table-responsive" style="display: none;" id="detailsd<?php echo e($d[0]['header_id']); ?>">
-                        
-                        <table class="table table-sm">
-                            <thead class="thead-secondary">
-                                <tr class="tx-12">
-                                    <th class="wd-10p">Stock Code</th>
-                                    <th class="wd-45p">Description</th>
-                                    <th class="wd-10p">Serial #</th>
-                                    <th class="wd-10p">Status</th>
-                                    <th class="wd-5p">Qty</th>
-                                    <th class="wd-10p">Cost</th>
-                                    <th class="wd-10p"></th>
-                                    
-                                    <th>
-                                        <a href="#isTransfer"><button type="button" class="btn btn-primary transfered isTransfer-<?php echo e($d[0]['header_id']); ?>" id="isTransfer" style="display:none; height:24px;" data-toggle="modal" data-target="#mod"><div class="button" style="margin-top:-4px">Transfer</div></button></a>
-                                    </th>
-    
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php $items = ""; ?>
-                                <?php $__currentLoopData = $d; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
-                                <?php
-                                    $items .= $i->qty.':'.$i->item_id.'|';
-                                ?>
-
-                                
-                                <tr class="tx-12">
-                                    <td><?php echo e(isset($i->stock_code) ? $i->stock_code : 'N/A'); ?></td>
-                                    <td><?php echo e($i->description); ?></td>
-                                    <td><?php echo e($i->serial_no); ?></td>
-                                    <td>
-                                        <?php if($i->status == 'OPEN'): ?>
-                                            <span class="label label-sm label-success ">OPEN</span>
-                                        <?php endif; ?>
-
-                                        <?php if($i->status == 'CLOSED'): ?>
-                                            <span class="label label-sm label-danger ">CLOSED</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td><?php echo e($i->qty); ?></td>
-                                    <td><?php echo e(number_format($i->cost,2)); ?></td>
-                                    
-                                    <td>
-                                        
-                                        <?php if($d[0]['doc_status'] == 'saved' || $d[0]['doc_status'] == 'closed' || $d[0]['doc_status'] == 'adjustment'): ?>
-                                            <a href="/item/details/<?php echo e($i->item_id); ?>" data-placement="bottom" title="View Par Details" target="_blank">
-                                                <i class="fa fa-eye"></i>
-                                            </a>
-                                        <?php else: ?>
-                                            <?php if($i->status == 'CLOSED'): ?>
-                                                <a href="/item/details/<?php echo e($i->item_id); ?>" class="mg-l-5" data-placement="bottom" title="View Par Details" target="_blank">
+                                            <?php else: ?>
+                                                <a href="/par/details/<?php echo e($d[0]['header_id']); ?>" title="View Par Details" target="_blank" class="btn btn-secondary btn-xs">
                                                     <i class="fa fa-eye"></i>
                                                 </a>
-                                            <?php else: ?>
-                                                <a href="/item/details/<?php echo e($i->item_id); ?>" class="mg-l-5" data-placement="bottom" title="View Par Details" target="_blank">
-                                                    <i class="fa fa-eye"></i>
+                                                <a href="/par/print/<?php echo e($d[0]['header_id']); ?>" title="Print Par Details" target="_blank" class="btn btn-info btn-xs">
+                                                    <i class="fa fa-print"></i>
                                                 </a>
                                                 <?php if(Auth::user()->role == 'admin' || Auth::user()->role == 'read and write'): ?>
-                                                    <?php if($i->is_lock == 0): ?>
-                                                        <a href="#close-item" class="mg-l-5 close-item" data-hid="<?php echo e($d[0]['header_id']); ?>" data-iid="<?php echo e($i->item_id); ?>" data-qty="<?php echo e($i->qty); ?>" data-cost="<?php echo e($i->cost); ?>" data-toggle="modal" title="Close Item">
-                                                            <i class="fa fa-times"></i>
+                                                    <a href="/par/edit/<?php echo e($d[0]['header_id']); ?>" title="Edit Par Details" target="_blank" class="btn btn-success btn-xs">
+                                                        <i class="fa fa-edit"></i>
+                                                    </a>
+                                                    <a href="#" data-toggle="modal" title="Post Par" data-target="#post-par" data-pid="<?php echo e($d[0]['header_id']); ?>" data-refpar="<?php echo e($d[0]['ref_par']); ?>" class="btn btn-warning btn-xs post-par">
+                                                        <i class="fa fa-stamp"></i>
+                                                    </a>
+                                                    <a href="#" title="Get Link" data-toggle="modal" data-target="#email-par" data-pid="<?php echo e($d[0]['header_id']); ?>" class="btn btn-primary btn-xs email-par">
+                                                        <i data-feather="external-link"></i></i>
+                                                    </a>
+
+                                                    <?php if($d[0]['ptype'] == 'transfer'): ?>
+                                                    <a href="/par/preview/<?php echo e($d[0]['header_id']); ?>" title="Get Link" id="btn" data-pid="<?php echo e($d[0]['header_id']); ?>" class="btn btn-dark btn-xs email-par">
+                                                        <i class="fa fa-eye"></i></i>
+                                                    </a>
+                                                    <?php endif; ?>
+            
+                                                    <?php if(\App\accountabilityDetails::countItemQty($d[0]['header_id']) == 0): ?>
+                                                        <a href="#" title="Close PAR" data-toggle="modal" data-target="#close-par" data-pid="<?php echo e($d[0]['header_id']); ?>" class="btn btn-danger btn-xs close-par">
+                                                            <i data-feather="x-square"></i>
                                                         </a>
-                                                       
-                                                        <a href="#transfer-item" class="mg-l-5 transfer-item" data-hid="<?php echo e($d[0]['header_id']); ?>" data-iid="<?php echo e($i->item_id); ?>" data-cost="<?php echo e($i->cost); ?>" data-qty="<?php echo e($i->qty); ?>" data-dept="<?php echo e($i->is_dept); ?>" data-toggle="modal" title="Transfer Item">
-                                                        <i class="fa fa-link"></i>    
-                                                    </a>   
+                                                        <?php endif; ?>
                                                     <?php endif; ?>
                                                 <?php endif; ?>
                                             <?php endif; ?>
+                                        </div>
+                                    </span>
+                                </div>
+                            </div>
+                        
+                        <div class="table-responsive" style="display: none;" id="detailsd<?php echo e($d[0]['header_id']); ?>">
+                            
+                            <table class="table table-sm">
+                                <thead class="thead-secondary">
+                                    <tr class="tx-12">
+                                        <th class="wd-10p">Stock Code</th>
+                                        <th class="wd-45p">Description</th>
+                                        <th class="wd-10p">Serial #</th>
+                                        <th class="wd-10p">Status</th>
+                                        <th class="wd-5p">Qty</th>
+                                        <th class="wd-10p">Cost</th>
+                                        <th class="wd-10p"></th>
+                                        
+                                        <th>
+                                            <a href="#isTransfer"><button type="button" class="btn btn-primary transfered isTransfer-<?php echo e($d[0]['header_id']); ?>" id="isTransfer" style="display:none; height:24px;" data-toggle="modal" data-target="#mod"><div class="button" style="margin-top:-4px">Transfer</div></button></a>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php $items = ""; ?>
+                                    <?php $__currentLoopData = $d; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+
+                                    <?php
+                                        $items .= $i->qty.':'.$i->item_id.'|';
+                                    ?>
+                                        
+                                    <tr class="tx-12">
+
+                                        <td><?php echo e(isset($i->stock_code) ? $i->stock_code : 'N/A'); ?></td>
+                                        <td><?php echo e($i->description); ?></td>
+                                        <td><?php echo e($i->serial_no); ?></td>
+                                        <td>
+                                            <?php echo e($i->status); ?>
+
+                                        </td>
+                                        <td><?php echo e($i->qty); ?></td>
+                                        <td><?php echo e(number_format($i->cost,2)); ?></td>
+                                        
+                                        <td>
+                                            
+                                            <?php if($d[0]['doc_status'] == 'saved' || $d[0]['doc_status'] == 'closed' || $d[0]['doc_status'] == 'adjustment'): ?>
+                                                <a href="/item/details/<?php echo e($i->item_id); ?>" data-placement="bottom" title="View Par Details" target="_blank">
+                                                    <i class="fa fa-eye"></i>
+                                                </a>
+                                            <?php else: ?>
+                                                <?php if($i->status == 'CLOSED'): ?>
+                                                    <a href="/item/details/<?php echo e($i->item_id); ?>" class="mg-l-5" data-placement="bottom" title="View Par Details" target="_blank">
+                                                        <i class="fa fa-eye"></i>
+                                                    </a>
+                                                <?php else: ?>
+                                                    <a href="/item/details/<?php echo e($i->item_id); ?>" class="mg-l-5" data-placement="bottom" title="View Par Details" target="_blank">
+                                                        <i class="fa fa-eye"></i>
+                                                    </a>
+                                                    
+                                                    <?php if(Auth::user()->role == 'admin' || Auth::user()->role == 'read and write'): ?>
+                                                        
+                                                            <a href="#close-item" class="mg-l-5 close-item" data-hid="<?php echo e($d[0]['header_id']); ?>" data-iid="<?php echo e($i->item_id); ?>" data-qty="<?php echo e($i->qty); ?>" data-cost="<?php echo e($i->cost); ?>" data-toggle="modal" title="Close Item">
+                                                                <i class="fa fa-times"></i>
+                                                    </a>
+                                                    
+                                                    <a href="#transfer-item" class="mg-l-5 transfer-item" data-hid="<?php echo e($d[0]['header_id']); ?>" data-iid="<?php echo e($i->item_id); ?>" data-xid="<?php echo e($i->id); ?>" data-cost="<?php echo e($i->cost); ?>" data-qty="<?php echo e($i->qty); ?>" data-dept="<?php echo e($i->is_dept); ?>" data-toggle="modal" title="Transfer Item">
+                                                    <i class="fa fa-link"></i>    
+                                                    </a>
+
+                                                        
+                                                    <?php endif; ?>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                        
+                                        <?php if(count($d) > 1 && $i->status != 'CLOSED'): ?>
+                                        <input class='checkbox' type="checkbox" data-check="checkbox-<?php echo e($d[0]['header_id']); ?>" name="checkboxes[]" value="<?php echo e($i->id); ?>" data-row="<?php echo e(json_encode($i)); ?>" data-header="<?php echo e($d[0]['header_id']); ?>">
                                         <?php endif; ?>
-                                    </td>
-                                    <td>
-                                      
-                                      <?php echo e(count($d)); ?>  
-                                     <?php if(count($d) > 0): ?>
-                                    <input class='checkbox' type="checkbox" data-check="checkbox-<?php echo e($d[0]['header_id']); ?>" name="checkboxes[]" value="<?php echo e($i->id); ?>" data-row="<?php echo e(json_encode($i)); ?>" data-header="<?php echo e($d[0]['header_id']); ?>">
-                                    <?php endif; ?>
-                                   </td>                                                                                                       
-                                </tr>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                <input id="<?php echo e($d[0]['header_id']); ?>_items" type="hidden" value="<?php echo e($items); ?>">
-                               
-                            </tbody>
-                        </table>
+                                    </td>                                                                                                       
+                                    </tr>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    <input id="<?php echo e($d[0]['header_id']); ?>_items" type="hidden" value="<?php echo e($items); ?>">
+                                
+                                </tbody>
+                            </table>
+                        </div>
+                        
                     </div>
-                </div>
+                    <?php endif; ?>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                     <tr>
                         <td><center>No accountability found</center></td>
@@ -321,6 +333,7 @@
                     <input type="hidden" name="iid" id="item_id" class="itemid">
                     <input type="hidden" name="hid" id="header_id" class="headerid">
                     <input type="hidden" name="cost" id="icost">
+                    <input type="hidden" name="xid" class="xid">
                     <input type="hidden" class="dept" name="isdept" id="isdept">
                     
                     <div class="form-group" id="personaldiv">
@@ -341,21 +354,28 @@
                             <div id="department_list"></div>
                         </div>
                     </div>
-                    
+                   
                     <div class="multiply">
                         <div class="checkboxid">111</div>
                         <div class="form-group">
                             <label class="tx-10 tx-uppercase tx-medium tx-spacing-1 mg-b-5 tx-color-03">Qty <i class="tx-danger">*</i></label>
                             <input required type="number" name="qty" id="qty_t" class="form-control text-right qty_t">
                         </div>
-                        
-
+                
                         <div class="form-group">
                             <label class="tx-10 tx-uppercase tx-medium tx-spacing-1 mg-b-5 tx-color-03">Item Condition <i class="tx-danger">*</i></label>
                             <textarea required class="form-control condition" name="new_condition" rows="3" placeholder="State the item's conditions, parts, usability, storage, location, etc..."></textarea>
                         </div>
-                     </div>
-                     <div class="ptf"></div>
+                        
+                        </div>
+                    <div class="ptf">
+                         </div>
+                    <div class="form-group">
+                        <label class="tx-10 tx-uppercase tx-medium tx-spacing-1 mg-b-5 tx-color-03">Reason <i class="tx-danger">*</i></label>
+                        <textarea required class="form-control reason" name="reason" rows="3" placeholder="State your reason ..."></textarea>
+                    </div>
+                    
+
                 </div>
                 <div class="modal-footer pd-x-20 pd-y-15">
                     <button type="button" class="btn btn-white" data-dismiss="modal">Cancel</button>
@@ -404,6 +424,8 @@
             $(".ptf").append(
             `            <div class="checkboxid">${checkbox.id}</div>
                       <div>${checkbox.description}</div>
+                      <input type="hidden" name="item_ids[]" id="item_ids" class="form-control text-right item_ids" value="${checkbox.item_id}">
+
                     <div class="form-group">
                         <label class="tx-10 tx-uppercase tx-medium tx-spacing-1 mg-b-5 tx-color-03">Qty <i class="tx-danger">*</i></label>
                         <input required type="number" name="quantity[]" id="qty_t" class="form-control text-right qty_t" value="${checkbox.qty}">
@@ -413,6 +435,7 @@
                         <label class="tx-10 tx-uppercase tx-medium tx-spacing-1 mg-b-5 tx-color-03">Item Condition <i class="tx-danger">*</i></label>
                         <textarea required class="form-control condition" name="condition[]" rows="3" placeholder="State the item's conditions, parts, usability, storage, location, etc..."></textarea>
                     </div>
+                   
                 `
             );
             $('.itemid').val(checkbox.item_id)
@@ -451,8 +474,8 @@
     </script>
 
 
-
-<script type="text/javascript"> 
+    
+    <script type="text/javascript"> 
 
     $(document).ready(function() {
         // Function to check if more than one checkbox is checked
@@ -480,16 +503,7 @@
         });
 
         $(".checkbox").click(function() {
-            // var table = $(this).closest("table");
-                
-            // tableTR = table.closest("tr");
-            // td = tableTR.find("th"); 
-            // $.each(td, function() {                // Visits every single <td> element
-            //     console.log($(this).text());         // Prints out the text within the <td>
-            // });
-            // Get the header ID from the clicked row
-            // var headerId = $(this).closest('div.table-responsive').attr('id');
-
+          
             var headerId = $(this).closest('div.table-responsive').attr('id').replace('detailsd', '');
 
             // Get the checked checkbox value
@@ -515,8 +529,6 @@
             }
         });
 </script>
-
-
 
 
     <script>
@@ -586,7 +598,6 @@ $(document).on('click','.emp_li',function(){
 
             $('.empt').fadeOut();
         });
-
 
 
     </script>

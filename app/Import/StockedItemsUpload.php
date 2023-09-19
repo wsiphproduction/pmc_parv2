@@ -2,7 +2,7 @@
   
 namespace App\Import;
 
-
+use App\Models\StockedItem;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
@@ -16,6 +16,7 @@ class StockedItemsUpload implements ToModel, WithHeadingRow
 {
     public function model(array $row)
     {
+      
         return new StockedItems([
             'stock_type'  => $row['stock_type'],
             'inv_code'    => $row['inv_code'], 

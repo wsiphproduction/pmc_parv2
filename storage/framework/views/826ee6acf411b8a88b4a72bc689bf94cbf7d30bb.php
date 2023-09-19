@@ -146,6 +146,7 @@
                         </div>
                     </div>
 
+                    
                     <div class="form-row">
                         <div class="col-md-12">
                             <input type="search" name="search" id="search" class="form-control" placeholder="Search item via serial number or item description...">

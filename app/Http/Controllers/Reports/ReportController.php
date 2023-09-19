@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Reports;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\accountabilityHeaders;
+use Auth;
+
+use App\Contractor;
 
 class ReportController extends Controller {
 
@@ -20,7 +23,6 @@ class ReportController extends Controller {
         $departments = file_get_contents("http://172.16.20.27/parv2/api/dept-api.php");
 
         return view('reports.department',compact('departments'));
-
     }
 
     public function index()
@@ -34,6 +36,13 @@ class ReportController extends Controller {
             accountabilityHeaders::findOrfail($id)->update(['notes' => $request->notes]);
             // dd($request);
         // }
+    }
+
+    public function contractor()
+    {
+        $contractors = Contractor::paginate(10);
+
+        return view('reports.contractor',compact('contractors'));
     }
 }
 

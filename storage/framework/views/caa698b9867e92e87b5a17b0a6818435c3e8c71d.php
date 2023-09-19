@@ -109,7 +109,7 @@
                         <label class="tx-10 tx-uppercase tx-medium tx-spacing-1 mg-b-5 tx-color-03">Upload supporting document <i class="tx-danger">*</i></label>
                         <input required type="file" class="form-control" name="uploadFile[]" multiple>
                     </div>
-
+                        
                     <div class="form-group">
                         <label class="tx-10 tx-uppercase tx-medium tx-spacing-1 mg-b-5 tx-color-03">Qty <i class="tx-danger">*</i></label>
                         <input type="number" step="0.01" name="qty" id="c_qty" class="form-control text-right">
@@ -151,6 +151,7 @@
                     <input type="hidden" name="iid" id="item_id">
                     <input type="hidden" name="hid" id="header_id">
                     <input type="hidden" name="cost" id="icost">
+                    <input type="hidden" name="xid" class="xid">
                     <input type="hidden" class="dept" name="isdept" id="isdept">
                     
                     <div class="form-group" id="personaldiv" style="display: none;">
@@ -182,10 +183,15 @@
                         <textarea required class="form-control" name="new_condition" rows="3" placeholder="State the item's conditions, parts, usability, storage, location, etc..."></textarea>
                     </div>
 
+                    <div class="form-group">
+                        <label class="tx-10 tx-uppercase tx-medium tx-spacing-1 mg-b-5 tx-color-03">Reason <i class="tx-danger">*</i></label>
+                        <textarea required class="form-control" name="reason" rows="3" placeholder="State your reason why you want to transfer the item..."></textarea>
+                    </div>
+
                 </div>
                 <div class="modal-footer pd-x-20 pd-y-15">
                     <button type="button" class="btn btn-white" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Transfer</button>
+                    <button type="submit" id="receiver-received-button" class="btn btn-primary">Transfer</button>
                 </div>
             </form>
         </div>
@@ -208,6 +214,7 @@
                     <input type="hidden" name="iid" id="item_id">
                     <input type="hidden" name="hid" id="header_id">
                     <input type="hidden" name="cost" id="icost">
+                    <input type="hidden" name="xid" class="xid">
                     <input type="hidden" class="dept" name="isdept" id="isdept">
                     
                     <div class="form-group" id="personaldiv" style="display: none;">

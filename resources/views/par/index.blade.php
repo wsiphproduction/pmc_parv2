@@ -15,10 +15,10 @@
         .panel-body a { font-size: 14px; color: white; }
 
         .form-check {
-    position: relative;
-    display: block;
-    padding-left: 6.25rem;
-    margin-top: -22px;
+            position: relative;
+            display: block;
+            padding-left: 6.25rem;
+            margin-top: -22px;
         }
 
     </style>
@@ -78,6 +78,7 @@
                                 <option value="posted" {{ request()->has('doc_status') && request('doc_status') === 'posted' ? 'selected' : '' }}>Posted</option>
                                 <option value="adjustment" {{ request()->has('doc_status') && request('doc_status') === 'adjustment' ? 'selected' : '' }}>Adjustment</option>
                                 <option value="closed" {{ request()->has('doc_status') && request('doc_status') === 'closed' ? 'selected' : '' }}>Closed</option>
+                                <option value="transfered" {{ request()->has('doc_status') && request('doc_status') === 'transfered' ? 'selected' : '' }}>Transfered</option>
                             </select>
                         </th>
                         <th class="wd-10p"><button type="submit" class="btn btn-sm btn-primary"><i data-feather="filter"></i></button></th>
@@ -116,172 +117,190 @@
                         }elseif($d[0]['doc_status'] == 'adjustment'){
                             $btn = '#00b8d4';
                         }
+                $header_items = \App\accountabilityDetails::where('header_id', $d[0]['header_id'])->get();
+                $has_close = []; 
+                foreach($header_items as $item){
+                    $has_close[] = $item->status == 'CLOSED';
+                }
+                $all_true = array_reduce($has_close, function ($carry, $item) {
+                return $carry && $item;
+            }, true);
                     @endphp
-                   
-                    @if($d[0]['status'] !== 'CLOSED')
-                <div class="trainings-wrapper" style="border-left: 5px solid {{ $btn }};">
-                    <div class="card-header d-sm-flex align-items-start justify-content-between pd-b-0 pd-l-1">
-                        <div class="mg-t-10">
-                            <h6 class="mg-b-5"><a href="javascript:;" onclick="$('#detailsd{{ $d[0]['header_id'] }}').toggle();">{{ $d[0]['refcode'] }} :</a>
-                                   
-                                @if($d[0]['is_dept'] == 0)
-                                    <a href="/{{$d[0]['employee_id']}}/accountability">{{ $d[0]['employee_id'] }} : {{ $d[0]['emp_name'] }}</a>
-                                @else
-                                    {{ $d[0]['accountable'] }}
-                                @endif
 
-                                &nbsp;<small>{{ $d[0]['dept'] }} </small> -
-                                &nbsp;<small>{{ $d[0]['document_date'] }} </small> -
-                                &nbsp;<small> [ <strong> doc status </strong> {{ strtoupper($d[0]['doc_status']) }} ] </small>
-                                &nbsp;<small> [ <strong> item status </strong> {{ strtoupper($d[0]['status']) }} ] </small> 
-                            </h6>
-                        </div>
-
-                        <div class="d-flex mg-t-20 mg-sm-t-0">
-                            <span class="pull-right mg-b-5">
-                                <div class="d-none d-md-block">
-                                    @if($d[0]['doc_status'] == 'closed')
-                                        <a href="/par/details/{{ $d[0]['header_id'] }}" title="View Par Details" target="_blank" class="btn btn-secondary btn-xs">
-                                            <i class="fa fa-eye"></i>
-                                        </a>
-                                        <a href="/par/print/{{ $d[0]['header_id'] }}" title="Print Par Details" target="_blank" title="Print PAR" class="btn btn-info btn-xs">
-                                            <i class="fa fa-print"></i>
-                                        </a>
+                    @if(in_array(false, $has_close))
+    
+                    <div class="trainings-wrapper" style="border-left: 5px solid {{ $btn }};">
+                        <div class="card-header d-sm-flex align-items-start justify-content-between pd-b-0 pd-l-1">
+                            <div class="mg-t-10">
+                                <h6 class="mg-b-5"><a href="javascript:;" onclick="$('#detailsd{{ $d[0]['header_id'] }}').toggle();">{{ $d[0]['refcode'] }} :</a>
+                                    
+                                    @if($d[0]['is_dept'] == 0)
+                                        <a href="/{{$d[0]['employee_id']}}/accountability">{{ $d[0]['employee_id'] }} : {{ $d[0]['emp_name'] }}</a>
                                     @else
-                                        @if($d[0]['doc_status'] == 'posted')
-                                            <a href="/par/details/{{ $d[0]['header_id'] }}" title="View Par Details" target="_blank" class="btn btn-secondary btn-xs">
-                                                <i class="fa fa-eye"></i>
-                                            </a>
-                                            <a href="/par/print/{{ $d[0]['header_id'] }}" title="Print Par Details" target="_blank" class="btn btn-info btn-xs">
-                                                <i class="fa fa-print"></i>
-                                            </a>
-                                            @if(Auth::user()->role == 'admin' || Auth::user()->role == 'read and write')
-                                                <a href="/par/recreate/{{ $d[0]['header_id'] }}" title="Adjust Par" class="btn btn-warning btn-xs">
-                                                    <i class="fa fa-reply"></i>
-                                                </a>
-                                                <a href="#" title="Get Link" data-toggle="modal" data-target="#email-par" data-pid="{{ $d[0]['header_id'] }}" class="btn btn-primary btn-xs email-par">
-                                                    <i data-feather="external-link"></i></i>
-                                                </a>
-                                            
-                                                @if(\App\accountabilityDetails::countItemQty($d[0]['header_id']) == 0)
-                                                <a href="#" title="Close PAR" data-toggle="modal" data-target="#close-par" data-pid="{{ $d[0]['header_id'] }}" class="btn btn-danger btn-xs close-par">
-                                                    <i data-feather="x-square"></i>
-                                                </a>
-                                                @endif
-                                            @endif
+                                        {{ $d[0]['accountable'] }}
+                                    @endif
 
-                                        @else($d->doc_status == 'saved')
+                                    &nbsp;<small>{{ $d[0]['dept'] }} </small> -
+                                    &nbsp;<small>{{ $d[0]['document_date'] }} </small> -
+                                    &nbsp;<small> [ <strong> doc status </strong> {{ strtoupper($d[0]['doc_status']) }} ] </small>
+                                    &nbsp;<small> [ <strong> item status </strong> {{ $all_true ? 'CLOSED' : 'OPEN' }} ] </small> 
+                                </h6>
+                            </div>
+
+                            <div class="d-flex mg-t-20 mg-sm-t-0">
+                                <span class="pull-right mg-b-5">
+                                    <div class="d-none d-md-block">
+                                        @if($d[0]['doc_status'] == 'closed')
                                             <a href="/par/details/{{ $d[0]['header_id'] }}" title="View Par Details" target="_blank" class="btn btn-secondary btn-xs">
                                                 <i class="fa fa-eye"></i>
                                             </a>
-                                            <a href="/par/print/{{ $d[0]['header_id'] }}" title="Print Par Details" target="_blank" class="btn btn-info btn-xs">
+                                            <a href="/par/print/{{ $d[0]['header_id'] }}" title="Print Par Details" target="_blank" title="Print PAR" class="btn btn-info btn-xs">
                                                 <i class="fa fa-print"></i>
                                             </a>
-                                            @if(Auth::user()->role == 'admin' || Auth::user()->role == 'read and write')
-                                                <a href="/par/edit/{{ $d[0]['header_id'] }}" title="Edit Par Details" target="_blank" class="btn btn-success btn-xs">
-                                                    <i class="fa fa-edit"></i>
+                                        @else
+                                            @if($d[0]['doc_status'] == 'posted')
+                                                <a href="/par/details/{{ $d[0]['header_id'] }}" title="View Par Details" target="_blank" class="btn btn-secondary btn-xs">
+                                                    <i class="fa fa-eye"></i>
                                                 </a>
-                                                <a href="#" data-toggle="modal" title="Post Par" data-target="#post-par" data-pid="{{ $d[0]['header_id'] }}" data-refpar="{{ $d[0]['ref_par'] }}" class="btn btn-warning btn-xs post-par">
-                                                    <i class="fa fa-stamp"></i>
+                                                <a href="/par/print/{{ $d[0]['header_id'] }}" title="Print Par Details" target="_blank" class="btn btn-info btn-xs">
+                                                    <i class="fa fa-print"></i>
                                                 </a>
-                                                <a href="#" title="Get Link" data-toggle="modal" data-target="#email-par" data-pid="{{ $d[0]['header_id'] }}" class="btn btn-primary btn-xs email-par">
-                                                    <i data-feather="external-link"></i></i>
-                                                </a>
-                                                @if(\App\accountabilityDetails::countItemQty($d[0]['header_id']) == 0)
+                                                @if(Auth::user()->role == 'admin' || Auth::user()->role == 'read and write')
+                                                    <a href="/par/recreate/{{ $d[0]['header_id'] }}" title="Adjust Par" class="btn btn-warning btn-xs">
+                                                        <i class="fa fa-reply"></i>
+                                                    </a>
+                                                    <a href="#" title="Get Link" data-toggle="modal" data-target="#email-par" data-pid="{{ $d[0]['header_id'] }}" class="btn btn-primary btn-xs email-par">
+                                                        <i data-feather="external-link"></i></i>
+                                                    </a>
+                                                
+                                                    @if(\App\accountabilityDetails::countItemQty($d[0]['header_id']) == 0)
                                                     <a href="#" title="Close PAR" data-toggle="modal" data-target="#close-par" data-pid="{{ $d[0]['header_id'] }}" class="btn btn-danger btn-xs close-par">
                                                         <i data-feather="x-square"></i>
                                                     </a>
                                                     @endif
                                                 @endif
+
+                                            @else($d->doc_status == 'saved')
+                                                <a href="/par/details/{{ $d[0]['header_id'] }}" title="View Par Details" target="_blank" class="btn btn-secondary btn-xs">
+                                                    <i class="fa fa-eye"></i>
+                                                </a>
+                                                <a href="/par/print/{{ $d[0]['header_id'] }}" title="Print Par Details" target="_blank" class="btn btn-info btn-xs">
+                                                    <i class="fa fa-print"></i>
+                                                </a>
+                                                @if(Auth::user()->role == 'admin' || Auth::user()->role == 'read and write')
+                                                    <a href="/par/edit/{{ $d[0]['header_id'] }}" title="Edit Par Details" target="_blank" class="btn btn-success btn-xs">
+                                                        <i class="fa fa-edit"></i>
+                                                    </a>
+                                                    <a href="#" data-toggle="modal" title="Post Par" data-target="#post-par" data-pid="{{ $d[0]['header_id'] }}" data-refpar="{{ $d[0]['ref_par'] }}" class="btn btn-warning btn-xs post-par">
+                                                        <i class="fa fa-stamp"></i>
+                                                    </a>
+                                                    <a href="#" title="Get Link" data-toggle="modal" data-target="#email-par" data-pid="{{ $d[0]['header_id'] }}" class="btn btn-primary btn-xs email-par">
+                                                        <i data-feather="external-link"></i></i>
+                                                    </a>
+
+                                                    @if($d[0]['ptype'] == 'transfer')
+                                                    <a href="/par/preview/{{ $d[0]['header_id'] }}" title="Get Link" id="btn" data-pid="{{ $d[0]['header_id'] }}" class="btn btn-dark btn-xs email-par">
+                                                        <i class="fa fa-eye"></i></i>
+                                                    </a>
+                                                    @endif
+            
+                                                    @if(\App\accountabilityDetails::countItemQty($d[0]['header_id']) == 0)
+                                                        <a href="#" title="Close PAR" data-toggle="modal" data-target="#close-par" data-pid="{{ $d[0]['header_id'] }}" class="btn btn-danger btn-xs close-par">
+                                                            <i data-feather="x-square"></i>
+                                                        </a>
+                                                        @endif
+                                                    @endif
+                                                @endif
                                             @endif
-                                        @endif
-                                    </div>
-                                </span>
+                                        </div>
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    
-                    <div class="table-responsive" style="display: none;" id="detailsd{{ $d[0]['header_id'] }}">
                         
-                        <table class="table table-sm">
-                            <thead class="thead-secondary">
-                                <tr class="tx-12">
-                                    <th class="wd-10p">Stock Code</th>
-                                    <th class="wd-45p">Description</th>
-                                    <th class="wd-10p">Serial #</th>
-                                    <th class="wd-10p">Status</th>
-                                    <th class="wd-5p">Qty</th>
-                                    <th class="wd-10p">Cost</th>
-                                    <th class="wd-10p"></th>
-                                    {{-- <th class="wd-10p">Cost</th> --}}
-                                    <th>
-                                        <a href="#isTransfer"><button type="button" class="btn btn-primary transfered isTransfer-{{$d[0]['header_id']}}" id="isTransfer" style="display:none; height:24px;" data-toggle="modal" data-target="#mod"><div class="button" style="margin-top:-4px">Transfer</div></button></a>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @php $items = ""; @endphp
-                                @foreach($d as $i)
+                        <div class="table-responsive" style="display: none;" id="detailsd{{ $d[0]['header_id'] }}">
+                            
+                            <table class="table table-sm">
+                                <thead class="thead-secondary">
+                                    <tr class="tx-12">
+                                        <th class="wd-10p">Stock Code</th>
+                                        <th class="wd-45p">Description</th>
+                                        <th class="wd-10p">Serial #</th>
+                                        <th class="wd-10p">Status</th>
+                                        <th class="wd-5p">Qty</th>
+                                        <th class="wd-10p">Cost</th>
+                                        <th class="wd-10p"></th>
+                                        {{-- <th class="wd-10p">Cost</th> --}}
+                                        <th>
+                                            <a href="#isTransfer"><button type="button" class="btn btn-primary transfered isTransfer-{{$d[0]['header_id']}}" id="isTransfer" style="display:none; height:24px;" data-toggle="modal" data-target="#mod"><div class="button" style="margin-top:-4px">Transfer</div></button></a>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @php $items = ""; @endphp
+                                    @foreach($d as $i)
 
-                                @php
-                                    $items .= $i->qty.':'.$i->item_id.'|';
-                                @endphp
-                                    
-                                <tr class="tx-12">
-
-                                    <td>{{ isset($i->stock_code) ? $i->stock_code : 'N/A' }}</td>
-                                    <td>{{ $i->description }}</td>
-                                    <td>{{ $i->serial_no }}</td>
-                                    <td>
-                                        {{$i->status}}
-                                    </td>
-                                    <td>{{ $i->qty }}</td>
-                                    <td>{{ number_format($i->cost,2) }}</td>
-                                    
-                                    <td>
+                                    @php
+                                        $items .= $i->qty.':'.$i->item_id.'|';
+                                    @endphp
                                         
-                                        @if($d[0]['doc_status'] == 'saved' || $d[0]['doc_status'] == 'closed' || $d[0]['doc_status'] == 'adjustment')
-                                            <a href="/item/details/{{ $i->item_id }}" data-placement="bottom" title="View Par Details" target="_blank">
-                                                <i class="fa fa-eye"></i>
-                                            </a>
-                                        @else
-                                            @if($i->status == 'CLOSED')
-                                                <a href="/item/details/{{ $i->item_id }}" class="mg-l-5" data-placement="bottom" title="View Par Details" target="_blank">
+                                    <tr class="tx-12">
+
+                                        <td>{{ isset($i->stock_code) ? $i->stock_code : 'N/A' }}</td>
+                                        <td>{{ $i->description }}</td>
+                                        <td>{{ $i->serial_no }}</td>
+                                        <td>
+                                            {{$i->status}}
+                                        </td>
+                                        <td>{{ $i->qty }}</td>
+                                        <td>{{ number_format($i->cost,2) }}</td>
+                                        
+                                        <td>
+                                            
+                                            @if($d[0]['doc_status'] == 'saved' || $d[0]['doc_status'] == 'closed' || $d[0]['doc_status'] == 'adjustment')
+                                                <a href="/item/details/{{ $i->item_id }}" data-placement="bottom" title="View Par Details" target="_blank">
                                                     <i class="fa fa-eye"></i>
                                                 </a>
                                             @else
-                                                <a href="/item/details/{{ $i->item_id }}" class="mg-l-5" data-placement="bottom" title="View Par Details" target="_blank">
-                                                    <i class="fa fa-eye"></i>
-                                                </a>
-                                                @if(Auth::user()->role == 'admin' || Auth::user()->role == 'read and write')
+                                                @if($i->status == 'CLOSED')
+                                                    <a href="/item/details/{{ $i->item_id }}" class="mg-l-5" data-placement="bottom" title="View Par Details" target="_blank">
+                                                        <i class="fa fa-eye"></i>
+                                                    </a>
+                                                @else
+                                                    <a href="/item/details/{{ $i->item_id }}" class="mg-l-5" data-placement="bottom" title="View Par Details" target="_blank">
+                                                        <i class="fa fa-eye"></i>
+                                                    </a>
                                                     
-                                                        <a href="#close-item" class="mg-l-5 close-item" data-hid="{{$d[0]['header_id']}}" data-iid="{{$i->item_id}}" data-qty="{{$i->qty}}" data-cost="{{$i->cost}}" data-toggle="modal" title="Close Item">
-                                                            <i class="fa fa-times"></i>
-                                                        </a>
-                                                       
-                                                        <a href="#transfer-item" class="mg-l-5 transfer-item" data-hid="{{$d[0]['header_id']}}" data-iid="{{$i->item_id}}" data-xid="{{$i->id}}" data-cost="{{$i->cost}}" data-qty="{{$i->qty}}" data-dept="{{$i->is_dept}}" data-toggle="modal" title="Transfer Item">
-                                                        <i class="fa fa-link"></i>    
-                                                    </a>   
-                                                  
+                                                    @if(Auth::user()->role == 'admin' || Auth::user()->role == 'read and write')
+                                                        {{-- @if($i->is_lock == 0) --}}
+                                                            <a href="#close-item" class="mg-l-5 close-item" data-hid="{{$d[0]['header_id']}}" data-iid="{{$i->item_id}}" data-qty="{{$i->qty}}" data-cost="{{$i->cost}}" data-toggle="modal" title="Close Item">
+                                                                <i class="fa fa-times"></i>
+                                                    </a>
+                                                    
+                                                    <a href="#transfer-item" class="mg-l-5 transfer-item" data-hid="{{$d[0]['header_id']}}" data-iid="{{$i->item_id}}" data-xid="{{$i->id}}" data-cost="{{$i->cost}}" data-qty="{{$i->qty}}" data-dept="{{$i->is_dept}}" data-toggle="modal" title="Transfer Item">
+                                                    <i class="fa fa-link"></i>    
+                                                    </a>
+
+                                                        {{-- @endif --}}
+                                                    @endif
                                                 @endif
                                             @endif
+                                        </td>
+                                        <td>
+                                        
+                                        @if(count($d) > 1 && $i->status != 'CLOSED')
+                                        <input class='checkbox' type="checkbox" data-check="checkbox-{{$d[0]['header_id']}}" name="checkboxes[]" value="{{$i->id}}" data-row="{{json_encode($i)}}" data-header="{{$d[0]['header_id']}}">
                                         @endif
-                                    </td>
-                                    <td>
-                                      
-                                     @if(count($d) > 1 && $i->status != 'CLOSED')
-                                    <input class='checkbox' type="checkbox" data-check="checkbox-{{$d[0]['header_id']}}" name="checkboxes[]" value="{{$i->id}}" data-row="{{json_encode($i)}}" data-header="{{$d[0]['header_id']}}">
-                                    @endif
-                                   </td>                                                                                                       
-                                </tr>
-                                @endforeach
-                                <input id="{{$d[0]['header_id']}}_items" type="hidden" value="{{$items}}">
-                               
-                            </tbody>
-                        </table>
+                                    </td>                                                                                                       
+                                    </tr>
+                                    @endforeach
+                                    <input id="{{$d[0]['header_id']}}_items" type="hidden" value="{{$items}}">
+                                
+                                </tbody>
+                            </table>
+                        </div>
+                        
                     </div>
-                    
-                </div>
-                @endif
+                    @endif
                 @empty
                     <tr>
                         <td><center>No accountability found</center></td>
@@ -334,21 +353,28 @@
                             <div id="department_list"></div>
                         </div>
                     </div>
-                    
+                   
                     <div class="multiply">
                         <div class="checkboxid">111</div>
                         <div class="form-group">
                             <label class="tx-10 tx-uppercase tx-medium tx-spacing-1 mg-b-5 tx-color-03">Qty <i class="tx-danger">*</i></label>
                             <input required type="number" name="qty" id="qty_t" class="form-control text-right qty_t">
                         </div>
-                        
-
+                
                         <div class="form-group">
                             <label class="tx-10 tx-uppercase tx-medium tx-spacing-1 mg-b-5 tx-color-03">Item Condition <i class="tx-danger">*</i></label>
                             <textarea required class="form-control condition" name="new_condition" rows="3" placeholder="State the item's conditions, parts, usability, storage, location, etc..."></textarea>
                         </div>
-                     </div>
-                     <div class="ptf"></div>
+                        
+                        </div>
+                    <div class="ptf">
+                         </div>
+                    <div class="form-group">
+                        <label class="tx-10 tx-uppercase tx-medium tx-spacing-1 mg-b-5 tx-color-03">Reason <i class="tx-danger">*</i></label>
+                        <textarea required class="form-control reason" name="reason" rows="3" placeholder="State your reason ..."></textarea>
+                    </div>
+                    
+
                 </div>
                 <div class="modal-footer pd-x-20 pd-y-15">
                     <button type="button" class="btn btn-white" data-dismiss="modal">Cancel</button>
@@ -408,6 +434,7 @@
                         <label class="tx-10 tx-uppercase tx-medium tx-spacing-1 mg-b-5 tx-color-03">Item Condition <i class="tx-danger">*</i></label>
                         <textarea required class="form-control condition" name="condition[]" rows="3" placeholder="State the item's conditions, parts, usability, storage, location, etc..."></textarea>
                     </div>
+                   
                 `
             );
             $('.itemid').val(checkbox.item_id)
@@ -503,8 +530,6 @@
 </script>
 {{-- end line --}}
 
-
-
     <script>
         $(document).ready(function(){
             $('#filter_par_list').submit(function(e){
@@ -572,7 +597,6 @@ $(document).on('click','.emp_li',function(){
 
             $('.empt').fadeOut();
         });
-
 
 
     </script>

@@ -349,7 +349,5 @@
             $('#search').val('');
         });
 
-// new update add
-        
     </script>
 @endsection

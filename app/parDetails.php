@@ -52,10 +52,11 @@ class parDetails extends Model
     	$total = parDetails::where('doc_status',$status)->count();
 
     	return $total;
-    }	
+
+    }
 
 	protected static function boot(){
-
+		
 		parent::boot();
 
 		

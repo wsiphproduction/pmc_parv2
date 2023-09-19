@@ -169,4 +169,3 @@
 @empty
     <center><span class="badge badge-info">No accountability founds . . .</span></center>
 @endforelse
-<!-- new update search -->

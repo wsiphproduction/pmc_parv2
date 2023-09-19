@@ -161,6 +161,8 @@ Route::group(['middleware' => 'authenticated'], function(){
 	// Report Routes
 	Route::get('/report/par-summary','Reports\ReportController@index');
 	Route::get('/report/add-note-par-summary/{id}','Reports\ReportController@notes')->name('notes');
+
+	Route::get('/report/contractor','Reports\ReportController@contractor');
 	//Route::get('/report/department','Reports\ReportController@par_department');
 	//Route::get('/report/personnel','Reports\ReportController@par_personnel');
 	//Route::view('/report/items_without_par','reports.items-without-par');
@@ -224,6 +226,8 @@ Route::group(['middleware' => 'authenticated'], function(){
 	
 	Route::post('/seial/check', 'SearchController@serial_check')->name('serial.check');
 	Route::post('/api/department/fetch', 'SearchController@api_department')->name('api.department.fetch'); // search department on edit par
+	Route::get('/par/view','Par\ParController@history')->name('par.view');
+	Route::get('/par/preview/{id}','Par\ParController@history')->name('par.preview');
 ?>
 
 

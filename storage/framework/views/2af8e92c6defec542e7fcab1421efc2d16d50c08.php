@@ -34,6 +34,9 @@
     ?>
 
     <?php $__currentLoopData = $grouped; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $par): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+    <?php
+    $par_header = \App\accountabilityHeaders::find($par[0]['refcode']);
+    ?>
         <div class="bd-b mg-t-20">
             <div class="container pd-x-0 pd-lg-x-10 pd-xl-x-0">
                 <div class="d-sm-flex align-items-center justify-content-between">
@@ -55,7 +58,10 @@
                 <p class="mg-b-0" style="font-style: italic;"><?php if($par[0]['is_dept'] == 0): ?> <?php echo e($par[0]['dept']); ?> <?php endif; ?></p>
             </div>
             <div class="col-sm-6 tx-right d-none d-md-block">
-                <label class="tx-sans tx-uppercase tx-10 tx-medium tx-spacing-1 tx-color-03">Document Status</label>
+                <label class="tx-sans tx-uppercase tx-10 tx-medium tx-spacing-1 tx-color-03">Document Status
+                    <?php echo e($par[0]['doc_status']); ?>
+
+                </label>
                 <h1 class="tx-normal tx-color-04 mg-b-10 tx-spacing--2">
                     <?php if($par[0]['doc_status'] == 'saved'): ?>
                         SAVED
@@ -67,7 +73,8 @@
 
                     <?php if($par[0]['doc_status'] == 'closed'): ?>
                         CLOSED
-                    <?php endif; ?></h1>
+                    <?php endif; ?>
+                    </h1>
             </div>
             <div class="col-sm-6 col-lg-8 mg-sm-t-20">
                 <label class="tx-sans tx-uppercase tx-10 tx-medium tx-spacing-1 tx-color-03">Par Details</label>
@@ -88,7 +95,16 @@
                     </li>
                     <li>
                         <span>Reference Par # : </span>
-                        <span><?php echo e($par[0]['bis_header_id']); ?></span>
+                        <span><?php echo e($par[0]['ref_par']); ?></span>
+                    </li>
+                    <li>
+                        <span>PO # : </span>
+                        <span><?php echo e($par[0]['po_no']); ?></span>    
+                    </li>
+                    <li>
+                        <span>CIS/S.I # : </span>
+                        <span><?php echo e($par[0]['cis_si_no']); ?></span>
+                        
                     </li>
                 </ul>
             </div>
@@ -137,7 +153,7 @@
                         <tr>
                             <td><a href="/item/details/<?php echo e($item->item_id); ?>"><?php echo e(isset($item->stock_code) ? $item->stock_code : 'N/A'); ?></a></td>
                             <td class="d-none d-sm-table-cell tx-color-03"><?php echo e($item->description); ?></td>
-                            <td><?php echo e($item->serial_no); ?></td>
+                            <td><?php echo e($par_header->serial_no); ?></td>
                             <td><?php echo e($item->status); ?></td>
                             <td class="tx-right"><?php echo e($item->qty == '0.00' ? 0 : $item->qty); ?></td>
                             <td class="tx-right"><?php echo e(number_format($item->cost,2)); ?></td>
