@@ -23,7 +23,7 @@ use App\Logs;
 
 class ParController extends Controller {
 
-    public function landing(){
+    public function landing(){  
         return view('landing');
     }
 
@@ -598,8 +598,6 @@ class ParController extends Controller {
 
      public function transfer_item($r,$i,$iid){
         
-        // dd('breathe');
-        //Log::info('IDs', ['item_ids' => $iid]);
         $header = accountabilityDetails::create([
             'header_id'     => $i->id,
             'item'          => $iid,

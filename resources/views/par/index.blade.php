@@ -23,8 +23,6 @@
 
     </style>
 @endsection
-
-<!--     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
 @section('content')
 <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-25 mg-xl-b-30">
     <div>

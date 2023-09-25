@@ -11,11 +11,6 @@
 |
 */
 
-
-
-
-   
-
 Auth::routes();
 
 // Accounting Login routes

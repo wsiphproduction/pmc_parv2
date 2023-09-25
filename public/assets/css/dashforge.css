@@ -1858,7 +1858,8 @@ pre {
   .offset-lg-5 {
     margin-left: 41.66667%; }
   .offset-lg-6 {
-    margiï¾Uó·?ÑE Ï°å’Ë 8>fset-lg-7 {
+    margin-left: 50%; }
+  .offset-lg-7 {
     margin-left: 58.33333%; }
   .offset-lg-8 {
     margin-left: 66.66667%; }
@@ -1923,11 +1924,10 @@ pre {
   .order-xl-1 {
     order: 1; }
   .order-xl-2 {
-   ï¾W}ÑE ¶å’Ë  }
-|
-Ü|
-T}
-D ŸD ”ÝD š8øer-xl-4 {
+    order: 2; }
+  .order-xl-3 {
+    order: 3; }
+  .order-xl-4 {
     order: 4; }
   .order-xl-5 {
     order: 5; }
@@ -7081,11 +7081,9 @@ button.bg-dark:focus {
   .my-md-1 {
     margin-top: 0.25rem !important; }
   .mr-md-1,
-  .mx-md-1ï¾WÏ†bd × V_œ«Ë  }
-|
-®|
-¹}
-D ÕD Ú¿D ßý8ø-1,
+  .mx-md-1 {
+    margin-right: 0.25rem !important; }
+  .mb-md-1,
   .my-md-1 {
     margin-bottom: 0.25rem !important; }
   .ml-md-1,
@@ -11537,7 +11535,7 @@ table.dataTable {
     left: 10px; }
   .ui-datepicker-multi .ui-datepicker-group .ui-datepicker-next::before {
     right: 10px; }
-  .ui-datepicker-muï¾UÂyePÑE ×0J™Ë 8>roup table {
+  .ui-datepicker-multi .ui-datepicker-group table {
     margin: 0; }
 
 .ui-datepicker-multi .ui-datepicker-group-last {
@@ -13387,10 +13385,8 @@ textarea.parsley-success:focus {
       display: none; }
   .show-aside .aside-menu-link svg:first-child {
     display: none; }
-  .show-aside .aside-meï¾WðS'ÑE 9'K™Ë  }
-Þ}
-@   @n8|
- block; }
+  .show-aside .aside-menu-link svg:last-child {
+    display: block; }
   .show-aside .aside-body {
     border-right-color: transparent; }
   .show-aside .aside-backdrop {
@@ -13480,7 +13476,8 @@ textarea.parsley-success:focus {
     .aside.maximize .nav-aside svg {
       margin-right: 15px; }
 
-.asideï¾U<Ï1ÑE µ1K™Ë 8> fixed;
+.aside-fixed {
+  position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
@@ -21357,10 +21354,9 @@ a.bg-twitter:hover, a.bg-twitter:focus, button.bg-twitter:hover, button.bg-twitt
     margin-right: 350px; }
   .mg-sm-b-350 {
     margin-bottom: 350px; }
-  .mg-sm-l-350 ï¾WRóë˜ÑE i	œË  }
-<}
-D ï8|
--sm-t-350-f {
+  .mg-sm-l-350 {
+    margin-left: 350px; }
+  .mg-sm-t-350-f {
     margin-top: 350px !important; }
   .mg-sm-r-350-f {
     margin-right: 350px !important; }
@@ -23643,7 +23639,8 @@ D ï8|
   .mg-lg-80-f {
     margin: 80px !important; }
   .mg-lg-y-80 {
-    margiï¾UÆ,ÙoÑE ªÿœË 8>gin-bottom: 80px; }
+    margin-top: 80px;
+    margin-bottom: 80px; }
   .mg-lg-y-80-f {
     margin-top: 80px !important;
     margin-bottom: 80px !important; }
@@ -24020,7 +24017,7 @@ D ï8|
   .mg-lg-b-450-f {
     margin-bottom: 450px !important; }
   .mg-lg-l-450-f {
-    mï¾U‹”ÑE š)œË 8>mportant; }
+    margin-left: 450px !important; }
   .mg-lg-500 {
     margin: 500px; }
   .mg-lg-500-f {
@@ -24073,10 +24070,9 @@ D ï8|
     margin-top: 550px; }
   .mg-lg-r-550 {
     margin-right: 550px; }
-  .mg-lg-b-550ï¾W1¬É™ÑE Ø.œË  }
-d}
-D Í8|
-.mg-lg-l-550 {
+  .mg-lg-b-550 {
+    margin-bottom: 550px; }
+  .mg-lg-l-550 {
     margin-left: 550px; }
   .mg-lg-t-550-f {
     margin-top: 550px !important; }
@@ -38033,7 +38029,8 @@ D Í8|
     width: 30%; }
   .mx-wd-xs-30p {
     max-width: 30%; }
-  .mn-wd-xs-30p {ï¾UcýÑE ëU…©Ë 8> }
+  .mn-wd-xs-30p {
+    min-width: 30%; }
   .wd-xs-30-f {
     width: 30px !important; }
   .wd-xs-30p-f {
@@ -38643,7 +38640,8 @@ D Í8|
   .wd-sm-30 {
     width: 30px; }
   .wd-sm-30p {
-    wï¾U_eÏ1ÑE ¿”…©Ë 8>d-sm-30p {
+    width: 30%; }
+  .mx-wd-sm-30p {
     max-width: 30%; }
   .mn-wd-sm-30p {
     min-width: 30%; }
@@ -39252,7 +39250,8 @@ D Í8|
   .wd-md-25p-f {
     width: 25% !important; }
   .mx-wd-md-25p-f {
-    max-width: 25% !importaï¾U¸›;fÑE iÎ…©Ë 8>p-f {
+    max-width: 25% !important; }
+  .mn-wd-md-25p-f {
     min-width: 25% !important; }
   .wd-md-30 {
     width: 30px; }
