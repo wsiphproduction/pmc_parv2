@@ -10,6 +10,7 @@ use App\Http\Requests;
 use Carbon\Carbon;
 use Auth;
 use DB;
+use File;
 
 
 use App\accountabilityHeaders;
@@ -38,7 +39,7 @@ class ParController extends Controller {
 
     public function index(Request $request)
     {
-
+        
         $close_data = SelectMaster::where('select_option','close_par')->orderBy('id','asc')->get();
 
         $datas = parDetails::orderBy('header_id', 'desc');
@@ -75,6 +76,7 @@ class ParController extends Controller {
             'description' => request('description'),
             'accountable' => request('accountable')
         ]);
+        // dd($datas);
         return view('par.index',compact('datas','close_data',));
 
     }   
@@ -82,6 +84,7 @@ class ParController extends Controller {
     public function details($par){
         $par_details = parDetails::where('header_id','=',$par)->get();
         // dd($par_details);
+        
         return view('par.details',compact('par_details'));
 
     }
@@ -372,6 +375,7 @@ class ParController extends Controller {
         } else {
             $destinationPath = '\\\\ftp\FTP\APP_UPLOADED_FILES\par\\'.$req->pid;
 
+
             $this->upload_file($req->pid,$req->file('uploadFile'),$destinationPath);
         }
         
@@ -499,58 +503,60 @@ class ParController extends Controller {
 //
 
 // Transfer Accountability
-    public function auto_transfer_item(Request $req){
-        // dd($req->all());
-        // dd($req);
-        $emp  = explode(' - ',$req->emp);
-       
-        $lock = accountabilityDetails::where('item',$req->iid)->where('header_id',$req->hid)->update([ 
+public function auto_transfer_item(Request $req){
+
+    $emp  = explode(' - ', $req->emp);
+
+    $lock = accountabilityDetails::where('item', $req->iid)->where('header_id', $req->hid)->first();
+    
+    if ($lock) {
+        $finalQty = $lock->qty - $req->qty;
+
+        $lock->update([
             'is_lock' => 1,
-            'status' => 'CLOSED',
+            'status' => $finalQty <= 0 ? 'CLOSED' : 'OPEN',
             'closed_date' => Carbon::today(),
-            'closed_by' => 'manual transfer'
-
-         ]);
-
-         logger(json_encode($req->all()));
-        
-        if($lock){
-            // $source = parDetails::where('id', $req->xid)->update([ 
-            //     'status' => 'CLOSED'
-            // ]);
-
-            $source_header = accountabilityHeaders::find($req->hid);
-            $item_data = accountabilityHeaders::create([
-                'ptype'           => 'transfer',
-                'ref_par'         => $req->hid,
-                'employee_id'     => $req->dept != '' ? 0 : $emp[0],
-                'emp_name'        => $req->dept != '' ? '' : $emp[1],
-                'dept_id'         => $emp[0] != '' ? 0 : $req->dept,
-                'is_dept'         => $req->dept != '' ? '1' : '0',
-                'dept'            => $req->emp_dept,
-                'document_date'   => Carbon::today(),
-                'date_transfer'   => date('Y-m-d H:i:s'),
-                'added_by'        => Auth::user()->domainAccount,
-                'doc_status'      => 'OPEN',
-                'reason'          => $req->reason,
-                'p_location'      => $source_header->p_location,
-                'p_site'          => $source_header->p_site,
-                'doc_ref'         => $source_header->doc_ref
-
-            ]);
-          
-            
-            $transfered = $this->transfer_item($req,$item_data,$req->iid);
-            
-        }
-
-        return back()->with('success','Accountability transfered successfully');
-
+            'closed_by' => 'manual transfer',
+            'qty' => $finalQty
+        ]);
     }
+    
+    logger(json_encode($req->all()));
+
+    if ($lock) {
+        $source_header = accountabilityHeaders::find($req->hid);
+        $item_data = accountabilityHeaders::create([
+            'ptype' => 'transfer',
+            'ref_par' => $req->hid,
+            'employee_id' => $req->dept != '' ? 0 : $emp[0],
+            'emp_name' => $req->dept != '' ? '' : $emp[1],
+            'dept_id' => $emp[0] != '' ? 0 : $req->dept,
+            'is_dept' => $req->dept != '' ? '1' : '0',
+            'dept' => $req->emp_dept,
+            'document_date' => Carbon::today(),
+            'date_transfer' => date('Y-m-d H:i:s'),
+            'added_by' => Auth::user()->domainAccount,
+            'doc_status' => 'OPEN',
+            'reason' => $req->reason,
+            'p_location' => $source_header->p_location,
+            'p_site' => $source_header->p_site,
+            'doc_ref' => $source_header->doc_ref,
+            
+        ]);
+
+        
+
+        $transfered = $this->transfer_item($req, $item_data, $req->iid); 
+        
+    }
+
+    return back()->with('success', 'Accountability transferred successfully');
+}
+
 
     // multiple transfer item
     public function multiple_transfer(Request $req){
-       
+    //    dd($req->all());
         $emp  = explode(' - ',$req->emp);
         
             $source_header = accountabilityHeaders::find($req->hid);
@@ -573,31 +579,33 @@ class ParController extends Controller {
                
         ]);
         
-       
         foreach($req->item_ids as $key => $ids){
-           $lock = accountabilityDetails::where('item',$ids)->where('header_id',$req->hid)->update([ 
-                'is_lock' => 1, 
-                'status' => 'CLOSED',
-                'closed_date' => Carbon::today(),
-                'closed_by' => 'manual transfer'
-            ]);
 
-            if($lock){
-               
+            $lock = accountabilityDetails::where('item', $ids)->where('header_id', $req->hid)->first();
+    
+            if ($lock) {
+                $finalQty = $lock->qty - (int)$req->quantity[$key];
+                logger($req->quantity[$key]);
+                $lock->update([
+                    'is_lock' => 1,
+                    'status' => $finalQty <= 0 ? 'CLOSED' : 'OPEN',
+                    'closed_date' => Carbon::today(),
+                    'closed_by' => 'manual transfer',
+                    'qty' => $finalQty
+                ]);
+
                 $req['new_condition'] = $req->condition[$key];
                 $req['qty'] = $req->quantity[$key];
                 $transfered = $this->transfer_item($req,$item_data,$ids);
             }
-            
         }
-        
     
-         return back()->with('success','Accountability transfered successfully');
+        return back()->with('success','Accountability transfered successfully');
     
     }
 
      public function transfer_item($r,$i,$iid){
-        
+        // dd($r);
         $header = accountabilityDetails::create([
             'header_id'     => $i->id,
             'item'          => $iid,
