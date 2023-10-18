@@ -10,6 +10,7 @@ use App\Import\ContractorsUpload;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Items;
+use Illuminate\Support\Facades\File;
 
 class FileController extends Controller
 {
@@ -28,26 +29,51 @@ class FileController extends Controller
             }
         } else {
             $destinationPath = '\\\\ftp\FTP\APP_UPLOADED_FILES\par\\'.$req->par_id;
+            
             foreach ($files as $file) { 
                 $file->move($destinationPath, $file->getClientOriginalName());
+                
             }
         }
         return back()->with('success','File uploaded successfully');
     }
+    
+    
 
-    public function copyFile(Request $req){
-
+    public function copyFile(Request $req)
+    {
+        
         $today = date('Y-m-d', strtotime(Carbon::today()));
-
-        if(!Storage::exists('/public/'.$today)) {
-            
-            Storage::makeDirectory('/public/'.$today, 0775, true);
+        $publicDirectory = public_path();
+        
+        if (!file_exists($publicDirectory . '/files/')) {
+            mkdir($publicDirectory . '/files/', 0777, true);
         }
 
-        $dir = '\\\\ftp\\FTP\\APP_UPLOADED_FILES\\par\\'.$req->par.'\\'.$req->fileName;
-        $dst = storage_path().'/app/public/'.$today.'/'.$req->fileName;
+        if (!file_exists($publicDirectory . '/files/' . $today)) {
+            mkdir($publicDirectory . '/files/' . $today, 0777, true);
+        }
 
-        copy($dir, $dst);
+
+        $ftpDirectory = '\\\\ftp\\FTP\\APP_UPLOADED_FILES\\par\\' . $req->par;
+        $destinationDirectory = storage_path() . '/app/public/' . $today;
+
+        if (File::isDirectory($ftpDirectory)) {
+            $files = File::allFiles($ftpDirectory);
+            foreach ($files as $file) {
+                if ($file->isFile()) {
+                    $fileName = $file->getFilename();
+                    $localFilePath = $publicDirectory . '/files/' . $today . '/' . $fileName;
+
+                    copy($file, $localFilePath);
+
+                }
+            }
+
+            return asset('files/' . $today . '/' . $req->fileName);
+        }
+
+        return;
     }
 
     public function upload_stocked_items(Request $request) 
