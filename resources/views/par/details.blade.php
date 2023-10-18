@@ -173,22 +173,19 @@
                 <label class="tx-sans tx-uppercase tx-10 tx-medium tx-spacing-1 tx-color-03">Files</label>
                 <ul class="list-unstyled lh-7">
                     @php
-                        $par_id = $par[0]['header_id'];
-                        $dir = '\\\\ftp\\FTP\\APP_UPLOADED_FILES\\par\\'.$par_id.'\\';
-                    
-                        if(is_dir($dir)){
-                            $files = scandir($dir);
-                            for($i=0; $i< count($files);$i++){
-                                if($files[$i] != '.' && $files[$i] != '..'){
-                        @endphp
-                                <li>
-                                    <a onclick="doSomething('{{$files[$i]}}','{{$par_id}}');" href="#">{{$files[$i]}}</a>
-                                </li>
-                        @php
-                                }      
-                            }
-                        }
+                    $par_id = $par[0]['header_id'];
+                    $dir = '\\\\ftp\\FTP\\APP_UPLOADED_FILES\\par\\'.$par_id.'\\';
                     @endphp
+                    
+                    @if(is_dir($dir))
+                        @foreach(scandir($dir) as $file)
+                            @if($file != '.' && $file != '..')
+                                <li>
+                                    <a onclick="doSomething('{{$file}}','{{$par_id}}');" href="#">{{$file}}</a>
+                                </li>
+                            @endif
+                        @endforeach
+                    @endif
                 </ul>
             </div>
         </div>
@@ -221,29 +218,32 @@
 
 @section('pagejs')
 <script>
-    function doSomething(f,p) {
 
-        var today = new Date();
-        var dd = String(today.getDate()).padStart(2, '0');
-        var mm = String(today.getMonth() + 1).padStart(2, '0');
-        var yyyy = today.getFullYear();
+function doSomething(f, p) {
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var yyyy = today.getFullYear();
 
-        today = yyyy + '-' + mm + '-' + dd;
+    today = yyyy + '-' + mm + '-' + dd;
 
-        $.ajax({
-            type : 'post',
-            url  : '/copyFile',
-            data : {
-                'par'        : p,
-                'fileName'  : f,
-                '_token'    : $('input[name=_token]').val(),
-            },
-            type : 'POST',
-            success : function (data) {
-                window.open('{!!asset("storage/'+today+'/")!!}/'+f,"_blank")
-            }
-        });
-    }
+    $.ajax({
+        type: 'post',
+        url: '/copyFile',
+        data: {
+            'par': p,
+            'fileName': f,
+            '_token': $('input[name=_token]').val(),
+        },
+        success: function (data) {
+            console.log('Response from server:', data);
+            window.open(data, '_blank', 'fullscreen=yes');
+        },
+        error: function (xhr, status, error) {
+            console.log('AJAX Error:', error);
+        }
+    });
+}
 </script>
 @endsection
 
