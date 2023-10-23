@@ -53,6 +53,13 @@ class ParController extends Controller {
             $accountable = request('accountable');
             $datas->where('accountable', 'like', "%$accountable%");
         }
+
+         if (request()->has('serial_no')) {
+            $serial_no = request('serial_no');
+            // dd($serial_no);
+            $datas->where('serial_no2', 'like', "%$serial_no%");
+            
+        }
         
         if (request()->has('description')) {
             $description = request('description');
