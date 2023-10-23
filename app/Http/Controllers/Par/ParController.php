@@ -45,16 +45,17 @@ class ParController extends Controller {
         $datas = parDetails::orderBy('header_id', 'desc');
  
         if (request()->has('header_id')) {
-            $accountable = request('header_id');
-            $datas->where('header_id', 'like', "%$accountable%");
+            $header_id = substr(request('header_id'), 1);
+            $datas->where('header_id', 'like', "%$header_id%");
         }
 
         if (request()->has('accountable')) {
             $accountable = request('accountable');
             $datas->where('accountable', 'like', "%$accountable%");
+            
         }
 
-         if (request()->has('serial_no')) {
+        if (request()->has('serial_no')) {
             $serial_no = request('serial_no');
             // dd($serial_no);
             $datas->where('serial_no2', 'like', "%$serial_no%");
