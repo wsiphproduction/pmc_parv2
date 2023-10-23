@@ -65,6 +65,7 @@
                 <tr>
                     <form>
                     @csrf
+                        <th class="wd-20p"><input type="text" name="serial_no" value="{{ request()->has('serial_no') ? request('serial_no') : '' }}" class="form-control" placeholder="Serial #"></th>
                         <th class="wd-20p"><input type="text" name="header_id" value="{{ request()->has('header_id') ? request('header_id') : '' }}" class="form-control" placeholder="Transaction #"></th>
                         <th class="wd-20p"><input type="text" name="description" value="{{ request()->has('description') ? request('description') : '' }}" class="form-control" placeholder="Item Description"></th>
                         <th class="wd-20p"><input type="text" name="accountable" value="{{ request()->has('accountable') ? request('accountable') : '' }}" class="form-control" placeholder="Accountable (Personal/Common)"></th>
