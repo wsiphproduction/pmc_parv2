@@ -23,6 +23,10 @@ Route::get('/', function(){
 	return redirect('par/login');
 });
 
+Route::get('phpinfo', function(){
+	phpinfo();
+});
+
 // Dept Login Routes
 Route::view('/dept/login','auth.login_acc');
 Route::get('/dept/logout','Auth\LoginController@dept_logout');
@@ -63,6 +67,7 @@ Route::group(['middleware' => 'authenticated'], function(){
 	//Route::post('/par/transfer-item/manual','Par\ParController@manual_transfer_item');
 	Route::post('/par/file-upload','FileController@fileUpload');
 	Route::post('/copyFile','FileController@copyFile');
+	
 	Route::post('/par-item/delete', 'Par\ParController@item_delete');
 	Route::post('/par/multiple/par', 'Par\ParController@multiple_transfer')->name('multiple.par');
 	
