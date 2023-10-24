@@ -37,13 +37,13 @@ class ParController extends Controller {
         return view('par.home',compact('transactions','items','activities'));
     }
 
-    public function index(Request $request)
+   public function index(Request $request)
     {
-        
+
         $close_data = SelectMaster::where('select_option','close_par')->orderBy('id','asc')->get();
 
         $datas = parDetails::orderBy('header_id', 'desc');
- 
+  
         if (request()->has('header_id')) {
             $header_id = substr(request('header_id'), 1);
             $datas->where('header_id', 'like', "%$header_id%");
@@ -57,7 +57,6 @@ class ParController extends Controller {
 
         if (request()->has('serial_no')) {
             $serial_no = request('serial_no');
-            // dd($serial_no);
             $datas->where('serial_no2', 'like', "%$serial_no%");
             
         }
@@ -84,8 +83,8 @@ class ParController extends Controller {
             'description' => request('description'),
             'accountable' => request('accountable')
         ]);
-        // dd($datas);
-        return view('par.index',compact('datas','close_data',));
+        
+        return view('par.index',compact('datas','close_data'));
 
     }   
     
