@@ -292,7 +292,7 @@
                                     </tr>
                                     @endforeach
                                     <input id="{{$d[0]['header_id']}}_items" type="hidden" value="{{$items}}">
-                                
+                                    
                                 </tbody>
                             </table>
                         </div>
@@ -532,7 +532,7 @@
         $(document).ready(function(){
             $('#filter_par_list').submit(function(e){
                 e.preventDefault();
-
+                alert
                 $('#spinner').show();
                 $.ajax({
                     type: "GET",
@@ -595,7 +595,6 @@ $(document).on('click','.emp_li',function(){
 
             $('.empt').fadeOut();
         });
-
 
     </script>
 @endsection
