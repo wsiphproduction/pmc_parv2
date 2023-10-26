@@ -55,10 +55,18 @@ class ParController extends Controller {
             
         }
 
+        // if (request()->has('serial_no')) {
+        //     $serial_no = request('serial_no');
+        //     $datas->where('serial_no2', 'like', "%$serial_no%");
+            
+        // }
+
         if (request()->has('serial_no')) {
             $serial_no = request('serial_no');
-            $datas->where('serial_no2', 'like', "%$serial_no%");
-            
+            $datas->where(function ($query) use ($serial_no) {
+                $query->where('serial_no2', 'like', "%$serial_no%")
+                      ->orWhere('serial_no', 'like', "%$serial_no%");
+            });
         }
         
         if (request()->has('description')) {
