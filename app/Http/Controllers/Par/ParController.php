@@ -44,11 +44,13 @@ class ParController extends Controller {
 
         $datas = parDetails::orderBy('header_id', 'desc');
         
-    if (request()->has('header_id')) {
-            $header_id = substr(request('header_id'), 1);
+     if (request()->has('header_id') && $request->header_id !=NULL) {
+            
+            $header_id = (int)request('header_id');
+            
             $datas->where(function ($query) use ($header_id) {
-                $query->where('header_id', 'like', "%$header_id%")
-                      ->orWhere('id', 'like', "%$header_id%");
+                $query->where('header_id', 'like', $header_id)
+                      ->orWhere('id', 'like', $header_id);
             });
         }
 
