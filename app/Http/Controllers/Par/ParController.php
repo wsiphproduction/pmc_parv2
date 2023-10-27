@@ -43,10 +43,13 @@ class ParController extends Controller {
         $close_data = SelectMaster::where('select_option','close_par')->orderBy('id','asc')->get();
 
         $datas = parDetails::orderBy('header_id', 'desc');
-  
-        if (request()->has('header_id')) {
+        
+    if (request()->has('header_id')) {
             $header_id = substr(request('header_id'), 1);
-            $datas->where('header_id', 'like', "%$header_id%");
+            $datas->where(function ($query) use ($header_id) {
+                $query->where('header_id', 'like', "%$header_id%")
+                      ->orWhere('id', 'like', "%$header_id%");
+            });
         }
 
         if (request()->has('accountable')) {
