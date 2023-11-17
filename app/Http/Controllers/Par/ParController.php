@@ -29,7 +29,7 @@ class ParController extends Controller {
     }
 
     public function dashboard(){
-
+          
         $transactions = Logs::where('affected_field','doc_status')->orderBy('id','desc')->get();
         $items        = Logs::where('affected_field','qty')->orderBy('id','desc')->get();
         $activities   = Logs::orderBy('id','desc')->paginate(10);
@@ -37,74 +37,91 @@ class ParController extends Controller {
         return view('par.home',compact('transactions','items','activities'));
     }
 
-   public function index(Request $request)
+    public function index(Request $request)
     {
 
         $close_data = SelectMaster::where('select_option','close_par')->orderBy('id','asc')->get();
-
         $datas = parDetails::orderBy('header_id', 'desc');
-        
-     if (request()->has('header_id') && $request->header_id !=NULL) {
-            
+
+        if (request()->has('header_id') && $request->header_id != NULL) {
             $header_id = (int)request('header_id');
-            
             $datas->where(function ($query) use ($header_id) {
-                $query->where('header_id', 'like', $header_id)
-                      ->orWhere('id', 'like', $header_id);
+                $query->where('header_id', $header_id);
+                
             });
         }
-
-        if (request()->has('accountable')) {
+        if (request()->has('accountable')&& $request->accountable !=NULL) {
             $accountable = request('accountable');
             $datas->where('accountable', 'like', "%$accountable%");
             
         }
-
-        // if (request()->has('serial_no')) {
-        //     $serial_no = request('serial_no');
-        //     $datas->where('serial_no2', 'like', "%$serial_no%");
-            
-        // }
-
-        if (request()->has('serial_no')) {
+      
+        if (request()->has('serial_no')&& $request->serial_no !=NULL) {
             $serial_no = request('serial_no');
             $datas->where(function ($query) use ($serial_no) {
                 $query->where('serial_no2', 'like', "%$serial_no%")
                       ->orWhere('serial_no', 'like', "%$serial_no%");
             });
         }
-        
-        if (request()->has('description')) {
+
+
+        if (request()->has('description')&& $request->description !=NULL) {
             $description = request('description');
             $datas->where('description', 'like', "%$description%");
         }
-        
+       
+        // if (request()->has('doc_status')) {
+        //     $docStatus = request('doc_status'); 
+        //     if ($docStatus == 'transfered') {
+        //         $datas->where('ptype', 'transfer');
+        //     }else{
+        //         $datas->where('doc_status', 'like', "%$docStatus%");
+        //     }  
+        // }
+
         if (request()->has('doc_status')) {
-            $docStatus = request('doc_status'); 
+            $docStatus = request('doc_status');
+        
             if ($docStatus == 'transfered') {
                 $datas->where('ptype', 'transfer');
-            }else{
+            }
+             elseif ($docStatus == 'closed') {
+                // Include closed status in the query
+                $datas->where('doc_status', 'closed');
+            }
+            elseif ($docStatus == 'adjustment') {
+                // Include closed status in the query
+                $datas->where('doc_status', 'adjustment');
+            }
+            elseif ($docStatus == 'saved') {
+                // Include closed status in the query
+                $datas->where('doc_status', 'saved');
+            }
+            elseif ($docStatus == 'posted') {
+                // Include closed status in the query
+                $datas->where('doc_status', 'posted');
+            }
+            else {
                 $datas->where('doc_status', 'like', "%$docStatus%");
             }
-           
         }
-        
+
         $datas = $datas->paginate(20);
+
         $datas->appends([
             'doc_status' => request('doc_status'),
             'header_id' => request('header_id'),
             'description' => request('description'),
             'accountable' => request('accountable')
         ]);
-        
+
         return view('par.index',compact('datas','close_data'));
 
     }   
     
     public function details($par){
         $par_details = parDetails::where('header_id','=',$par)->get();
-        // dd($par_details);
-        
+     
         return view('par.details',compact('par_details'));
 
     }
@@ -141,7 +158,7 @@ class ParController extends Controller {
     }
 
     public function recreate($id){
-        // dd('te');
+       
         $items = parDetails::where('header_id',$id)->get();
         $par   = accountabilityHeaders::where('id',$id)->first();
 
@@ -157,7 +174,7 @@ class ParController extends Controller {
 
     public function store(Request $request)
     {   
-        
+       
         if(isset($request->emp)){
             $emp = explode(' - ',$request->emp);
         }
@@ -166,11 +183,9 @@ class ParController extends Controller {
             $emp = explode(' - ',$request->cont);
         }
      
-        $data  = $request->all();
-        // dd($request->all());    
+        $data  = $request->all(); 
         $items = $data['item_id'];
         $costs = $data['cost'];
-        //$cost = $data['tcost'];
         $qty = $data['qty'];
         $today = Carbon::today();
 
@@ -244,7 +259,7 @@ class ParController extends Controller {
                     $this->close_transfered_item($qty[$key],$i,$request->refpar);
 
                     accountabilityDetails::where('item',$i)->where('status','=','OPEN')->update([
-                        'status' => 'CLOSED',
+                        'status' => 'closed',
                         'closed_date' => $today,
                         'closed_by' => 'manual transfer'
                     ]);
@@ -268,6 +283,7 @@ class ParController extends Controller {
     }
 
     public function update(Request $request){
+        
         $emp   = explode(' - ',$request->emp);
         $data  = $request->all();
         $items = $data['item_id'];
@@ -323,6 +339,7 @@ class ParController extends Controller {
     }
 
     public function adjustments(Request $request){
+        
         $emp   = explode(' - ',$request->emp);
         $data  = $request->all();
         $items = $data['item_id'];
@@ -361,7 +378,7 @@ class ParController extends Controller {
                 $items->save();  
 
                 accountabilityDetails::where('header_id',$request->hid)->where('item',$i)->update([
-                    'status' => 'CLOSED'
+                    'status' => 'closed'
                 ]);
 
             }
@@ -376,8 +393,7 @@ class ParController extends Controller {
     }
 
     public function post(Request $req){
-
-        
+      
         $header = accountabilityHeaders::find($req->pid)->update([
             'posted_by'  => Auth::user()->domainAccount,
             'doc_status' => 'posted',
@@ -423,7 +439,7 @@ class ParController extends Controller {
 
             $deduct = ($item->qty - $qty);
             accountabilityDetails::where('item',$id)->where('header_id',$ref)->update([  
-                'status' => $deduct == 0 ? 'CLOSED' : 'OPEN',
+                'status' => $deduct == 0 ? 'closed' : 'OPEN',
                 'qty' => $deduct,
                 'closed_reason' => 'auto-transfer',
                 'closed_date' => $deduct == 0 ? Carbon::today() : NULL,
@@ -436,7 +452,7 @@ class ParController extends Controller {
     }
 
     public function close_par(Request $req){
-
+      
         $header = accountabilityHeaders::find($req->pid)->update([ 
             'doc_status' => 'closed',
             'remarks'    => $req->remarks 
@@ -458,7 +474,7 @@ class ParController extends Controller {
 
         if($header){
             accountabilityDetails::where('header_id','=',$req->pid)->update([ 
-                'status'   => 'CLOSED',
+                'status'   => 'closed',
                 'added_by' => Auth::user()->domainAccount
             ]);
         } 
@@ -490,7 +506,7 @@ class ParController extends Controller {
             'closed_date' => $deduct == 0 ? Carbon::today() : NULL,
             'closed_by'   => Auth::user()->domainAccount,
             'closed_reason' => 'auto-close',
-            'status' => $deduct == 0 ? 'CLOSED' : 'OPEN',
+            'status' => $deduct == 0 ? 'closed' : 'OPEN',
             'qty' => $deduct,
             'new_condition' => $req->condition
         ]);
@@ -534,7 +550,7 @@ public function auto_transfer_item(Request $req){
 
         $lock->update([
             'is_lock' => 1,
-            'status' => $finalQty <= 0 ? 'CLOSED' : 'OPEN',
+            'status' => $finalQty <= 0 ? 'closed' : 'OPEN',
             'closed_date' => Carbon::today(),
             'closed_by' => 'manual transfer',
             'qty' => $finalQty
@@ -571,7 +587,7 @@ public function auto_transfer_item(Request $req){
     }
 
     return back()->with('success', 'Accountability transferred successfully');
-}
+        }
 
 
     // multiple transfer item
@@ -608,7 +624,7 @@ public function auto_transfer_item(Request $req){
                 logger($req->quantity[$key]);
                 $lock->update([
                     'is_lock' => 1,
-                    'status' => $finalQty <= 0 ? 'CLOSED' : 'OPEN',
+                    'status' => $finalQty <= 0 ? 'closed' : 'OPEN',
                     'closed_date' => Carbon::today(),
                     'closed_by' => 'manual transfer',
                     'qty' => $finalQty
@@ -625,7 +641,7 @@ public function auto_transfer_item(Request $req){
     }
 
      public function transfer_item($r,$i,$iid){
-        // dd($r);
+       
         $header = accountabilityDetails::create([
             'header_id'     => $i->id,
             'item'          => $iid,
