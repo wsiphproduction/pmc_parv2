@@ -101,16 +101,16 @@
                     $grouped = $datas->groupBy('header_id');
                     $grouped->toArray();
                     $btn ='';
+
                 @endphp
 
                 @forelse($grouped as $d)
                     @php
                         if($d[0]['doc_status'] == 'saved'){
                             $btn = '#10b759';
-                        }elseif($d[0]['doc_status'] == 'closed'){
-                        // }elseif($d[0]['doc_status'] == 'closed' || $d[0]['status'] == 'CLOSED'){
+                        }elseif(strtolower($d[0]['doc_status']) == 'closed'){
                             $btn = '#dc3545';
-                        }elseif($d[0]['doc_status'] == 'posted'){
+                        }elseif(strtolower($d[0]['doc_status'])  == 'posted'){
                             $btn = '#ffc107';
                         }elseif($d[0]['doc_status'] == 'adjustment'){
                             $btn = '#00b8d4';
@@ -118,11 +118,11 @@
                 $header_items = \App\accountabilityDetails::where('header_id', $d[0]['header_id'])->get();
                 $has_close = []; 
                 foreach($header_items as $item){
-                    $has_close[] = $item->status == 'CLOSED';
+                    $has_close[] = $item->status == 'closed';
                 }
                 $all_true = array_reduce($has_close, function ($carry, $item) {
                 return $carry && $item;
-            }, true);
+              }, true);
                     @endphp
 
                     @if(in_array(false, $has_close))
@@ -140,15 +140,15 @@
 
                                     &nbsp;<small>{{ $d[0]['dept'] }} </small> -
                                     &nbsp;<small>{{ $d[0]['document_date'] }} </small> -
-                                    &nbsp;<small> [ <strong> doc status </strong> {{ strtoupper($d[0]['doc_status']) }} ] </small>
-                                    &nbsp;<small> [ <strong> item status </strong> {{ $all_true ? 'CLOSED' : 'OPEN' }} ] </small> 
+                                    &nbsp;<small> [ <strong> doc status </strong> {{ strtolower($d[0]['doc_status']) }} ] </small>
+                                    &nbsp;<small> [ <strong> item status </strong> {{ $all_true ? 'closed' : 'OPEN' }} ] </small> 
                                 </h6>
                             </div>
 
                             <div class="d-flex mg-t-20 mg-sm-t-0">
                                 <span class="pull-right mg-b-5">
                                     <div class="d-none d-md-block">
-                                        @if($d[0]['doc_status'] == 'closed')
+                                        @if(strtolower($d[0]['doc_status']) == 'closed')
                                             <a href="/par/details/{{ $d[0]['header_id'] }}" title="View Par Details" target="_blank" class="btn btn-secondary btn-xs">
                                                 <i class="fa fa-eye"></i>
                                             </a>
@@ -178,7 +178,7 @@
                                                     @endif
                                                 @endif
 
-                                            @else($d->doc_status == 'saved')
+                                            @else
                                                 <a href="/par/details/{{ $d[0]['header_id'] }}" title="View Par Details" target="_blank" class="btn btn-secondary btn-xs">
                                                     <i class="fa fa-eye"></i>
                                                 </a>
@@ -254,12 +254,12 @@
                                         
                                         <td>
                                             
-                                            @if($d[0]['doc_status'] == 'saved' || $d[0]['doc_status'] == 'closed' || $d[0]['doc_status'] == 'adjustment')
+                                            @if($d[0]['doc_status'] == 'saved' || strtolower($d[0]['doc_status']) == 'closed' || $d[0]['doc_status'] == 'adjustment')
                                                 <a href="/item/details/{{ $i->item_id }}" data-placement="bottom" title="View Par Details" target="_blank">
                                                     <i class="fa fa-eye"></i>
                                                 </a>
                                             @else
-                                                @if($i->status == 'CLOSED')
+                                                @if($i->status == 'closed')
                                                     <a href="/item/details/{{ $i->item_id }}" class="mg-l-5" data-placement="bottom" title="View Par Details" target="_blank">
                                                         <i class="fa fa-eye"></i>
                                                     </a>
@@ -277,7 +277,6 @@
                                                     <a href="#transfer-item" class="mg-l-5 transfer-item" data-hid="{{$d[0]['header_id']}}" data-iid="{{$i->item_id}}" data-xid="{{$i->id}}" data-cost="{{$i->cost}}" data-qty="{{$i->qty}}" data-dept="{{$i->is_dept}}" data-toggle="modal" title="Transfer Item">
                                                     <i class="fa fa-link"></i>    
                                                     </a>
-
                                                         {{-- @endif --}}
                                                     @endif
                                                 @endif
@@ -285,7 +284,7 @@
                                         </td>
                                         <td>
                                         
-                                        @if(count($d) > 1 && $i->status != 'CLOSED')
+                                        @if(count($d) > 1 && $i->status != 'closed')
                                         <input class='checkbox' type="checkbox" data-check="checkbox-{{$d[0]['header_id']}}" name="checkboxes[]" value="{{$i->id}}" data-row="{{json_encode($i)}}" data-header="{{$d[0]['header_id']}}">
                                         @endif
                                     </td>                                                                                                       
@@ -307,6 +306,7 @@
 
                 <div class="d-flex justify-content-end">
                     {{ $datas->links() }}
+                    
                 </div>
             </div>
         </div>
